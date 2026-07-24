@@ -1,6 +1,13 @@
 from django.shortcuts import render
-from django.http import HttpResponse
+
+
 # Create your views here.
 
 def home(request):
-    return HttpResponse("Welcome to CourseHub")
+    context = {
+        "title": "CourseHub",
+        "teacher": "Yazdan",
+        "course_count": 5,
+        "status": "در حال توسعه",
+    }
+    return render(request, 'core/home.html',context)
