@@ -1,20 +1,44 @@
-<h1>{{ course.title }}</h1>
+{% extends "base.html" %}
 
-<hr>
+{% block content %}
 
-<h3>Instructor</h3>
-<p>{{ course.instructor.name }}</p>
+<div class="card shadow-sm">
 
-<h3>Price</h3>
-<p>{{ course.price }}</p>
+    <div class="card-body">
 
+        <h2>
+            {{ course.title }}
+        </h2>
 
+        <hr>
 
-<h3>Students</h3>
-<p>{{ course.student_count }}</p>
+        <h5>Instructor</h5>
+        <p>{{ course.instructor.name }}</p>
 
-<h3>Description</h3>
-<p>{{ course.description }}</p>
+        <h5>Email</h5>
+        <p>{{ course.instructor.email }}</p>
 
-<h3>Email</h3>
-<p>{{ course.instructor.email }}</p>
+        <h5>Phone</h5>
+        <p>{{ course.instructor.phone }}</p>
+
+        <h5>Price</h5>
+        <p>${{ course.price }}</p>
+
+        <h5>Students</h5>
+        <p>{{ course.students_count }}</p>
+
+        <h5>Description</h5>
+        <p>{{ course.description }}</p>
+
+        <a
+            href="{% url 'course_list' %}"
+            class="btn btn-secondary"
+        >
+            Back
+        </a>
+
+    </div>
+
+</div>
+
+{% endblock %}
