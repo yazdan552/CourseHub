@@ -31,3 +31,26 @@ def course_detail(request, course_id):
             "course": course,
         },
     )
+
+
+def create_course(request):
+
+    if request.method == "POST":
+
+        form = CourseForm(request.POST)
+
+        if form.is_valid():
+            form.save()
+
+            return redirect("course_list")
+
+    else:
+        form = CourseForm()
+
+    return render(
+        request,
+        "courses/course_form.html",
+        {
+            "form": form,
+        },
+    )
