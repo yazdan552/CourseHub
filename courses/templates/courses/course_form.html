@@ -2,36 +2,45 @@
 
 {% block content %}
 
-<div class="card shadow-sm">
+    <div class="card shadow-sm">
 
-    <div class="card-body">
+        <div class="card-body">
 
-        <h2>Create Course</h2>
+            <h2>
+                {% if form.instance.pk %}
+                    Edit Course
+                {% else %}
+                    Create Course
+                {% endif %}
+            </h2>
+            <form method="post">
 
-        <form method="post">
+                {% csrf_token %}
 
-            {% csrf_token %}
+                {{ form.as_p }}
 
-            {{ form.as_p }}
+                <button
+                        type="submit"
+                        class="btn btn-success"
+                >
+                    {% if form.instance.pk %}
+                        Update
+                    {% else %}
+                        Create
+                    {% endif %}
+                </button>
 
-            <button
-                type="submit"
-                class="btn btn-success"
-            >
-                Create
-            </button>
+                <a
+                        href="{% url 'course_list' %}"
+                        class="btn btn-secondary"
+                >
+                    Cancel
+                </a>
 
-            <a
-                href="{% url 'course_list' %}"
-                class="btn btn-secondary"
-            >
-                Cancel
-            </a>
+            </form>
 
-        </form>
+        </div>
 
     </div>
-
-</div>
 
 {% endblock %}

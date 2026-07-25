@@ -54,3 +54,38 @@ def create_course(request):
             "form": form,
         },
     )
+
+def update_course(request, course_id):
+    course = get_object_or_404(
+        Course,
+        id=course_id,
+    )
+
+    if request.method == "POST":
+
+        form = CourseForm(
+            request.POST,
+            instance=course,
+        )
+
+        if form.is_valid():
+            form.save()
+
+            return redirect(
+                "course_detail",
+                course.id,
+            )
+
+    else:
+
+        form = CourseForm(
+            instance=course,
+        )
+
+    return render(
+        request,
+        "courses/course_form.html",
+        {
+            "form": form,
+        },
+    )
