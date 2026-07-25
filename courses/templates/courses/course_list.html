@@ -1,5 +1,9 @@
-<h1>لیست دوره‌ها</h1>
+<h1>Courses</h1>
 
 {% for course in courses %}
     <h2>{{ course.title }}</h2>
+    <a href="{% url 'course_detail' course.id %}">View Details</a>
+
+{% empty %}
+    <h2>No courses available.</h2>
 {% endfor %}
