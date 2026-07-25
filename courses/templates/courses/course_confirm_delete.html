@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="card shadow-sm">
+
+    <div class="card-body">
+
+        <h2>
+            Delete Course
+        </h2>
+
+        <p>
+
+            Are you sure you want to delete
+
+            <strong>
+
+                {{ course.title }}
+
+            </strong>
+
+            ?
+
+        </p>
+
+        <form method="post">
+
+            {% csrf_token %}
+
+            <button
+                type="submit"
+                class="btn btn-danger"
+            >
+                Delete
+            </button>
+
+            <a
+                href="{% url 'course_detail' course.id %}"
+                class="btn btn-secondary"
+            >
+                Cancel
+            </a>
+
+        </form>
+
+    </div>
+
+</div>
+
+{% endblock %}

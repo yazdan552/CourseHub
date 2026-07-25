@@ -89,3 +89,23 @@ def update_course(request, course_id):
             "form": form,
         },
     )
+
+def delete_course(request, course_id):
+    course = get_object_or_404(
+        Course,
+        id=course_id,
+    )
+
+    if request.method == "POST":
+
+        course.delete()
+
+        return redirect("course_list")
+
+    return render(
+        request,
+        "courses/course_confirm_delete.html",
+        {
+            "course": course,
+        },
+    )
