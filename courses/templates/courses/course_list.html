@@ -1,9 +1,47 @@
-<h1>Courses</h1>
+{% extends "base.html" %}
 
-{% for course in courses %}
-    <h2>{{ course.title }}</h2>
-    <a href="{% url 'course_detail' course.id %}">View Details</a>
+{% block content %}
 
-{% empty %}
-    <h2>No courses available.</h2>
-{% endfor %}
+<h1 class="mb-4">
+    Courses
+</h1>
+
+<div class="row">
+
+    {% for course in courses %}
+
+    <div class="col-md-4 mb-4">
+
+        <div class="card h-100 shadow-sm">
+
+            <div class="card-body">
+
+                <h4>
+                    {{ course.title }}
+                </h4>
+
+                <p>
+                    {{ course.instructor.name }}
+                </p>
+
+                <p>
+                    ${{ course.price }}
+                </p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    {% empty %}
+
+    <h4>
+        No courses available.
+    </h4>
+
+    {% endfor %}
+
+</div>
+
+{% endblock %}
