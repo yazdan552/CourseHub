@@ -1,5 +1,7 @@
-from django.shortcuts import render, get_object_or_404
-from .models import Course
+from django.shortcuts import render, redirect, get_object_or_404
+from .forms import CourseForm
+from .models import Course, Instructor
+
 
 # Create your views here.
 
@@ -12,5 +14,10 @@ def course_detail(request,course_id):
     course = get_object_or_404(Course,id=course_id)
 
     return render(request,'courses/course_detail.html',{'course':course})
+
+def instructor_detail(request,instructor_id):
+    instructor = get_object_or_404(Instructor,id=instructor_id)
+
+    return render(request,'courses/instructor_detail.html',{'instructor':instructor})
 
 

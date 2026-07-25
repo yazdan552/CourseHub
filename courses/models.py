@@ -19,7 +19,11 @@ class Instructor(models.Model):
 
 class Course(models.Model):
     title = models.CharField(max_length=100)
-    instructor = models.ForeignKey(Instructor, on_delete=models.CASCADE)
+    instructor = models.ForeignKey(
+        Instructor,
+        on_delete=models.CASCADE,
+        related_name='courses',
+    )
     description = models.TextField()
     price = models.IntegerField()
     student_count = models.IntegerField()
