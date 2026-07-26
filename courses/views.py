@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .forms import CourseForm
+from .forms import  CourseForm, RegisterForm
 from .models import Course, Instructor
-
+from django.contrib.auth import login
 
 # Create your views here.
 
@@ -107,5 +107,36 @@ def delete_course(request, course_id):
         "courses/course_confirm_delete.html",
         {
             "course": course,
+        },
+    )
+
+
+
+
+
+
+def register(request):
+
+    if request.method == "POST":
+
+        form = RegisterForm(request.POST)
+
+        if form.is_valid():
+
+            user = form.save()
+
+            login(request, user)
+
+            return redirect("course_list")
+
+    else:
+
+        form = RegisterForm()
+
+    return render(
+        request,
+        "registration/register.html",
+        {
+            "form": form,
         },
     )
