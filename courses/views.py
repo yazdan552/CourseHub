@@ -2,7 +2,8 @@ from django.shortcuts import render, redirect, get_object_or_404
 from .forms import  CourseForm, RegisterForm
 from .models import Course, Instructor
 from django.contrib.auth import login
-
+from django.contrib.auth.decorators import login_required
+from django.contrib.admin.views.decorators import staff_member_required
 # Create your views here.
 
 
@@ -33,6 +34,7 @@ def course_detail(request, course_id):
     )
 
 
+@staff_member_required
 def create_course(request):
 
     if request.method == "POST":
@@ -55,6 +57,8 @@ def create_course(request):
         },
     )
 
+
+@staff_member_required
 def update_course(request, course_id):
     course = get_object_or_404(
         Course,
@@ -90,6 +94,9 @@ def update_course(request, course_id):
         },
     )
 
+
+
+@staff_member_required
 def delete_course(request, course_id):
     course = get_object_or_404(
         Course,
