@@ -1,8 +1,8 @@
+from django.http import HttpResponseForbidden
 from django.shortcuts import render, redirect, get_object_or_404
 from .forms import  CourseForm, RegisterForm
 from .models import Course, Instructor
 from django.contrib.auth import login
-from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 # Create your views here.
 
@@ -42,7 +42,13 @@ def create_course(request):
         form = CourseForm(request.POST)
 
         if form.is_valid():
-            form.save()
+            course = form.save(
+                commit=False,
+            )
+
+            course.instructor = request.user.instructor
+
+            course.save()
 
             return redirect("course_list")
 
@@ -64,6 +70,10 @@ def update_course(request, course_id):
         Course,
         id=course_id,
     )
+    if course.instructor != request.user.instructor:
+        return HttpResponseForbidden(
+            "You are not allowed to edit this course."
+        )
 
     if request.method == "POST":
 
@@ -103,6 +113,11 @@ def delete_course(request, course_id):
         id=course_id,
     )
 
+    if course.instructor != request.user.instructor:
+        return HttpResponseForbidden(
+            "You are not allowed to delete this course."
+        )
+
     if request.method == "POST":
 
         course.delete()
@@ -129,8 +144,13 @@ def register(request):
         form = RegisterForm(request.POST)
 
         if form.is_valid():
-
             user = form.save()
+
+            Instructor.objects.create(
+                user=user,
+                phone="",
+                bio="",
+            )
 
             login(request, user)
 
