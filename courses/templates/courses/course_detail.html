@@ -2,75 +2,128 @@
 
 {% block content %}
 
-<div class="card shadow-sm">
+    <div class="card shadow-sm">
 
-    <div class="card-body">
+        <div class="card-body">
 
-        <h1>
-            {{ course.title }}
-        </h1>
+            <h1>
+                {{ course.title }}
+            </h1>
 
-        <hr>
+            <hr>
 
-        <h3>
-            Instructor
-        </h3>
+            <h3>
+                Instructor
+            </h3>
 
-        <p>
-            {{ course.instructor }}
-        </p>
+            <p>
+                {{ course.instructor }}
+            </p>
 
-        <h3>
-            Price
-        </h3>
+            <h3>
+                Price
+            </h3>
 
-        <p>
-            ${{ course.price }}
-        </p>
+            <p>
+                ${{ course.price }}
+            </p>
 
-        <h3>
-            Students
-        </h3>
+            <h3>
+                Students
+            </h3>
 
-        <p>
-            {{ course.students_count }}
-        </p>
+            <p>
+                {{ course.enrollments.count }}
+            </p>
 
-        <h3>
-            Description
-        </h3>
+            <h3>
+                Description
+            </h3>
 
-        <p>
-            {{ course.description }}
-        </p>
+            <p>
+                {{ course.description }}
+            </p>
 
-        {% if user.is_authenticated and user.instructor == course.instructor %}
+            {% if user.is_authenticated %}
+
+                {% if user.instructor != course.instructor %}
+
+                    {% if is_enrolled %}
+
+                        <form
+                                method="post"
+                                action="{% url 'unenroll_course' course.id %}"
+                        >
+
+                            {% csrf_token %}
+
+                            <button
+                                    type="submit"
+                                    class="btn btn-danger"
+                            >
+                                Unenroll
+                            </button>
+
+                        </form>
+
+                    {% else %}
+
+                        <form
+                                method="post"
+                                action="{% url 'enroll_course' course.id %}"
+                        >
+
+                            {% csrf_token %}
+
+                            <button
+                                    type="submit"
+                                    class="btn btn-success"
+                            >
+                                Enroll
+                            </button>
+
+                        </form>
+
+                    {% endif %}
+
+                {% else %}
+
+                    <a
+                            href="{% url 'update_course' course.id %}"
+                            class="btn btn-warning"
+                    >
+                        Edit
+                    </a>
+
+                    <a
+                            href="{% url 'delete_course' course.id %}"
+                            class="btn btn-danger"
+                    >
+                        Delete
+                    </a>
+
+                {% endif %}
+
+            {% else %}
+
+                <a
+                        href="{% url 'login' %}"
+                        class="btn btn-success"
+                >
+                    Login to Enroll
+                </a>
+
+            {% endif %}
 
             <a
-                href="{% url 'update_course' course.id %}"
-                class="btn btn-warning"
+                    href="{% url 'course_list' %}"
+                    class="btn btn-secondary"
             >
-                Edit
+                Back to Courses
             </a>
 
-            <a
-                href="{% url 'delete_course' course.id %}"
-                class="btn btn-danger"
-            >
-                Delete
-            </a>
-
-        {% endif %}
-
-        <a
-            href="{% url 'course_list' %}"
-            class="btn btn-secondary"
-        >
-            Back to Courses
-        </a>
+        </div>
 
     </div>
-
-</div>
 
 {% endblock %}

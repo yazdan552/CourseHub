@@ -22,11 +22,15 @@
                         </h4>
 
                         <p>
-                            {{ course.instructor.name }}
+                            {{ course.instructor }}
                         </p>
 
                         <p>
                             ${{ course.price }}
+                        </p>
+
+                        <p>
+                            Students: {{ course.enrollments.count }}
                         </p>
 
                         <a
