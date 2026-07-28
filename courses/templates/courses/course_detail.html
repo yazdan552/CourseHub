@@ -2,55 +2,75 @@
 
 {% block content %}
 
-    <div class="card shadow-sm">
+<div class="card shadow-sm">
 
-        <div class="card-body">
+    <div class="card-body">
 
-            <h2>
-                {{ course.title }}
-            </h2>
+        <h1>
+            {{ course.title }}
+        </h1>
 
-            <hr>
+        <hr>
 
-            <h5>Instructor</h5>
-            <p>{{ course.instructor.name }}</p>
+        <h3>
+            Instructor
+        </h3>
 
-            <h5>Email</h5>
-            <p>{{ course.instructor.email }}</p>
+        <p>
+            {{ course.instructor }}
+        </p>
 
-            <h5>Phone</h5>
-            <p>{{ course.instructor.phone }}</p>
+        <h3>
+            Price
+        </h3>
 
-            <h5>Price</h5>
-            <p>${{ course.price }}</p>
+        <p>
+            ${{ course.price }}
+        </p>
 
-            <h5>Students</h5>
-            <p>{{ course.students_count }}</p>
+        <h3>
+            Students
+        </h3>
 
-            <h5>Description</h5>
-            <p>{{ course.description }}</p>
+        <p>
+            {{ course.students_count }}
+        </p>
+
+        <h3>
+            Description
+        </h3>
+
+        <p>
+            {{ course.description }}
+        </p>
+
+        {% if user.is_authenticated and user.instructor == course.instructor %}
 
             <a
-                    href="{% url 'update_course' course.id %}"
-                    class="btn btn-warning"
+                href="{% url 'update_course' course.id %}"
+                class="btn btn-warning"
             >
                 Edit
             </a>
+
             <a
-                    href="{% url 'delete_course' course.id %}"
-                    class="btn btn-danger"
+                href="{% url 'delete_course' course.id %}"
+                class="btn btn-danger"
             >
                 Delete
             </a>
-            <a
-                    href="{% url 'course_list' %}"
-                    class="btn btn-secondary"
-            >
-                Back
-            </a>
 
-        </div>
+        {% endif %}
+
+        <a
+            href="{% url 'course_list' %}"
+            class="btn btn-secondary"
+        >
+            Back to Courses
+        </a>
 
     </div>
+
+</div>
 
 {% endblock %}

@@ -1,8 +1,9 @@
+from django.http import HttpResponseForbidden
 from django.shortcuts import render, redirect, get_object_or_404
-from .forms import CourseForm
+from .forms import  CourseForm, RegisterForm
 from .models import Course, Instructor
-
-
+from django.contrib.auth import login
+from django.contrib.admin.views.decorators import staff_member_required
 # Create your views here.
 
 
@@ -33,6 +34,7 @@ def course_detail(request, course_id):
     )
 
 
+@staff_member_required
 def create_course(request):
 
     if request.method == "POST":
@@ -40,7 +42,13 @@ def create_course(request):
         form = CourseForm(request.POST)
 
         if form.is_valid():
-            form.save()
+            course = form.save(
+                commit=False,
+            )
+
+            course.instructor = request.user.instructor
+
+            course.save()
 
             return redirect("course_list")
 
@@ -55,11 +63,17 @@ def create_course(request):
         },
     )
 
+
+@staff_member_required
 def update_course(request, course_id):
     course = get_object_or_404(
         Course,
         id=course_id,
     )
+    if course.instructor != request.user.instructor:
+        return HttpResponseForbidden(
+            "You are not allowed to edit this course."
+        )
 
     if request.method == "POST":
 
@@ -90,11 +104,19 @@ def update_course(request, course_id):
         },
     )
 
+
+
+@staff_member_required
 def delete_course(request, course_id):
     course = get_object_or_404(
         Course,
         id=course_id,
     )
+
+    if course.instructor != request.user.instructor:
+        return HttpResponseForbidden(
+            "You are not allowed to delete this course."
+        )
 
     if request.method == "POST":
 
@@ -107,5 +129,41 @@ def delete_course(request, course_id):
         "courses/course_confirm_delete.html",
         {
             "course": course,
+        },
+    )
+
+
+
+
+
+
+def register(request):
+
+    if request.method == "POST":
+
+        form = RegisterForm(request.POST)
+
+        if form.is_valid():
+            user = form.save()
+
+            Instructor.objects.create(
+                user=user,
+                phone="",
+                bio="",
+            )
+
+            login(request, user)
+
+            return redirect("course_list")
+
+    else:
+
+        form = RegisterForm()
+
+    return render(
+        request,
+        "registration/register.html",
+        {
+            "form": form,
         },
     )
