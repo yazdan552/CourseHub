@@ -10,7 +10,6 @@ class CourseForm(forms.ModelForm):
 
         exclude = [
             "instructor",
-            "students_count",
             "created_at",
         ]
 

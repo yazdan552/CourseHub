@@ -1,11 +1,14 @@
+from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseForbidden
 from django.shortcuts import render, redirect, get_object_or_404
-from .forms import  CourseForm, RegisterForm
-from .models import Course, Instructor
+from .forms import CourseForm, RegisterForm
+from .models import Course, Instructor, Enrollment
 from django.contrib.auth import login
 from django.contrib.admin.views.decorators import staff_member_required
-# Create your views here.
+from django.contrib import messages
 
+
+# Create your views here.
 
 
 def course_list(request):
@@ -19,24 +22,101 @@ def course_list(request):
         },
     )
 
+
+@login_required
+def my_courses(request):
+    enrollments = request.user.enrollments.select_related("course", )
+    return render(
+        request,
+        "courses/my_courses.html",
+        {
+            "enrollments": enrollments,
+        }
+    )
+
+
 def course_detail(request, course_id):
     course = get_object_or_404(
         Course,
         id=course_id,
     )
 
+    is_enrolled = False
+
+    if request.user.is_authenticated:
+        is_enrolled = Enrollment.objects.filter(
+            user=request.user,
+            course=course,
+        ).exists()
+
     return render(
         request,
         "courses/course_detail.html",
         {
             "course": course,
+            "is_enrolled": is_enrolled,
         },
+    )
+
+
+@login_required
+def enroll_course(request, course_id):
+    course = get_object_or_404(
+        Course,
+        id=course_id,
+    )
+
+    if request.method == "POST":
+        Enrollment.objects.get_or_create(
+            user=request.user,
+            course=course,
+        )
+
+        messages.success(
+            request,
+            "You enrolled in this course.",
+        )
+
+        return redirect(
+            "course_detail",
+            course.id,
+        )
+
+    return redirect(
+        "course_detail",
+        course.id,
+    )
+
+
+@login_required
+def unenroll_course(request, course_id):
+    course = get_object_or_404(
+        Course,
+        id=course_id,
+    )
+    if request.method == "POST":
+        Enrollment.objects.filter(
+            user=request.user,
+            course=course,
+        ).delete()
+
+        messages.success(
+            request,
+            "You left this course.",
+        )
+
+        return redirect(
+            "course_detail",
+            course.id,
+        )
+    return redirect(
+        "course_detail",
+        course.id,
     )
 
 
 @staff_member_required
 def create_course(request):
-
     if request.method == "POST":
 
         form = CourseForm(request.POST)
@@ -49,6 +129,11 @@ def create_course(request):
             course.instructor = request.user.instructor
 
             course.save()
+
+            messages.success(
+                request,
+                "Course created successfully.",
+            )
 
             return redirect("course_list")
 
@@ -85,6 +170,11 @@ def update_course(request, course_id):
         if form.is_valid():
             form.save()
 
+            messages.success(
+                request,
+                "Course updated successfully.",
+            )
+
             return redirect(
                 "course_detail",
                 course.id,
@@ -105,7 +195,6 @@ def update_course(request, course_id):
     )
 
 
-
 @staff_member_required
 def delete_course(request, course_id):
     course = get_object_or_404(
@@ -119,8 +208,12 @@ def delete_course(request, course_id):
         )
 
     if request.method == "POST":
-
         course.delete()
+
+        messages.success(
+            request,
+            "Course deleted successfully.",
+        )
 
         return redirect("course_list")
 
@@ -133,12 +226,7 @@ def delete_course(request, course_id):
     )
 
 
-
-
-
-
 def register(request):
-
     if request.method == "POST":
 
         form = RegisterForm(request.POST)
@@ -153,6 +241,11 @@ def register(request):
             )
 
             login(request, user)
+
+            messages.success(
+                request,
+                "Registration completed successfully.",
+            )
 
             return redirect("course_list")
 
