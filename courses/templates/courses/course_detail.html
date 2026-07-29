@@ -10,6 +10,12 @@
                 {{ course.title }}
             </h1>
 
+            {% if not course.is_active %}
+                <div class="alert alert-warning">
+                    This course is currently inactive.
+                </div>
+            {% endif %}
+
             <hr>
 
             <h3>
@@ -34,6 +40,9 @@
 
             <p>
                 {{ course.enrollments.count }}
+                {% if course.capacity > 0 %}
+                    / {{ course.capacity }}
+                {% endif %}
             </p>
 
             <h3>
@@ -68,21 +77,27 @@
 
                     {% else %}
 
-                        <form
-                                method="post"
-                                action="{% url 'enroll_course' course.id %}"
-                        >
-
-                            {% csrf_token %}
-
-                            <button
-                                    type="submit"
-                                    class="btn btn-success"
+                        {% if course.is_active and course.enrollments.count < course.capacity or course.capacity == 0 %}
+                            <form
+                                    method="post"
+                                    action="{% url 'enroll_course' course.id %}"
                             >
-                                Enroll
-                            </button>
 
-                        </form>
+                                {% csrf_token %}
+
+                                <button
+                                        type="submit"
+                                        class="btn btn-success"
+                                >
+                                    Enroll
+                                </button>
+
+                            </form>
+                        {% else %}
+                            <button class="btn btn-secondary" disabled>
+                                Enrollment Unavailable
+                            </button>
+                        {% endif %}
 
                     {% endif %}
 
