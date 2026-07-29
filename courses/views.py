@@ -7,7 +7,7 @@ from .models import Course, Instructor, Enrollment
 from django.contrib.auth import login
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib import messages
-
+from django.contrib.auth.models import User
 
 # Create your views here.
 
@@ -339,4 +339,47 @@ def register(request):
         {
             "form": form,
         },
+    )
+
+
+def instructor_profile(request, username):
+    """
+    نمایش پروفایل عمومی یک مدرس
+    """
+    # دریافت کاربر با username داده شده
+    # select_related: اطلاعات instructor را همراه با user دریافت می‌کند
+    user = get_object_or_404(
+        User.objects.select_related('instructor'),
+        username=username
+    )
+
+    # بررسی اینکه این کاربر مدرس است یا نه
+    if not hasattr(user, 'instructor'):
+        messages.error(
+            request,
+            "This user is not an instructor."
+        )
+        return redirect('course_list')
+
+    # دریافت اطلاعات مدرس
+    instructor = user.instructor
+
+    # دریافت دوره‌های این مدرس به همراه تعداد دانشجویان
+    # استفاده از prefetch_related برای بهینه‌سازی
+    courses = instructor.courses.all().prefetch_related('enrollments')
+
+    # بررسی اینکه کاربر جاری خودش این مدرس است یا نه
+    is_own_profile = False
+    if request.user.is_authenticated and request.user == user:
+        is_own_profile = True
+
+    return render(
+        request,
+        "courses/instructor_profile.html",
+        {
+            "instructor": instructor,
+            "courses": courses,
+            "profile_user": user,
+            "is_own_profile": is_own_profile,
+        }
     )
