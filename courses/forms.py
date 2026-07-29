@@ -13,6 +13,11 @@ class CourseForm(forms.ModelForm):
             "created_at",
         ]
 
+        widgets = {
+            'description': forms.Textarea(attrs={'rows': 5}),
+            'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }
+
 
 class RegisterForm(UserCreationForm):
     class Meta:

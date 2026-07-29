@@ -1,4 +1,5 @@
 from django.contrib.auth.decorators import login_required
+from django.db.models import Count
 from django.http import HttpResponseForbidden
 from django.shortcuts import render, redirect, get_object_or_404
 from .forms import CourseForm, RegisterForm
@@ -12,7 +13,13 @@ from django.contrib import messages
 
 
 def course_list(request):
-    courses = Course.objects.all()
+    """
+    نمایش لیست تمام دوره‌ها با شمارش تعداد دانشجویان
+    استفاده از annotate برای بهینه‌سازی Query
+    """
+    courses = Course.objects.select_related('instructor').annotate(
+        students_count=Count('enrollments')
+    ).filter(is_active=True)  # فقط دوره‌های فعال رو نمایش بده
 
     return render(
         request,
@@ -25,19 +32,41 @@ def course_list(request):
 
 @login_required
 def my_courses(request):
-    enrollments = request.user.enrollments.select_related("course", )
+    """
+    نمایش دوره‌هایی که کاربر در آنها ثبت‌نام کرده
+    تفکیک دوره‌های در حال پیشرفت و تکمیل شده
+    """
+    # دوره‌های در حال پیشرفت
+    enrollments = request.user.enrollments.select_related(
+        'course__instructor'
+    ).filter(
+        is_completed=False
+    )
+
+    # دوره‌های تکمیل شده
+    completed_courses = request.user.enrollments.select_related(
+        'course__instructor'
+    ).filter(
+        is_completed=True
+    )
+
     return render(
         request,
         "courses/my_courses.html",
         {
             "enrollments": enrollments,
+            "completed_courses": completed_courses,
         }
     )
 
 
 def course_detail(request, course_id):
+    """
+    نمایش جزئیات یک دوره
+    بررسی اینکه کاربر قبلاً ثبت‌نام کرده یا نه
+    """
     course = get_object_or_404(
-        Course,
+        Course.objects.select_related('instructor').prefetch_related('enrollments'),
         id=course_id,
     )
 
@@ -61,35 +90,74 @@ def course_detail(request, course_id):
 
 @login_required
 def enroll_course(request, course_id):
+    """
+    ثبت‌نام کاربر در دوره با بررسی موارد امنیتی:
+    1. دوره باید فعال باشد
+    2. کاربر نباید مدرس دوره باشد
+    3. ظرفیت دوره تکمیل نشده باشد
+    4. کاربر قبلاً ثبت‌نام نکرده باشد
+    """
     course = get_object_or_404(
-        Course,
+        Course.objects.select_related('instructor'),
         id=course_id,
     )
 
-    if request.method == "POST":
-        Enrollment.objects.get_or_create(
-            user=request.user,
-            course=course,
-        )
-
-        messages.success(
+    # بررسی اینکه دوره فعال باشد
+    if not course.is_active:
+        messages.error(
             request,
-            "You enrolled in this course.",
+            "This course is currently inactive and cannot be enrolled."
         )
+        return redirect("course_detail", course.id)
 
-        return redirect(
-            "course_detail",
-            course.id,
+    # جلوگیری از ثبت‌نام مدرس در دوره خودش
+    if request.user == course.instructor.user:
+        messages.error(
+            request,
+            "You cannot enroll in your own course."
         )
+        return redirect("course_detail", course.id)
 
-    return redirect(
-        "course_detail",
-        course.id,
-    )
+    # بررسی ظرفیت دوره
+    if course.capacity > 0:
+        current_enrollments = course.enrollments.count()
+        if current_enrollments >= course.capacity:
+            messages.error(
+                request,
+                "This course is full. No more enrollments accepted."
+            )
+            return redirect("course_detail", course.id)
+
+    if request.method == "POST":
+        # بررسی اینکه کاربر قبلاً ثبت‌نام کرده است
+        if Enrollment.objects.filter(
+                user=request.user,
+                course=course,
+        ).exists():
+            messages.warning(
+                request,
+                "You are already enrolled in this course."
+            )
+        else:
+            Enrollment.objects.create(
+                user=request.user,
+                course=course,
+            )
+            messages.success(
+                request,
+                f"You successfully enrolled in {course.title}."
+            )
+
+        return redirect("course_detail", course.id)
+
+    return redirect("course_detail", course.id)
 
 
 @login_required
 def unenroll_course(request, course_id):
+    """
+    لغو ثبت‌نام کاربر از دوره
+    """
     course = get_object_or_404(
         Course,
         id=course_id,
@@ -102,7 +170,7 @@ def unenroll_course(request, course_id):
 
         messages.success(
             request,
-            "You left this course.",
+            "You have unenrolled from this course."
         )
 
         return redirect(
@@ -117,6 +185,9 @@ def unenroll_course(request, course_id):
 
 @staff_member_required
 def create_course(request):
+    """
+    ایجاد دوره جدید توسط مدرس
+    """
     if request.method == "POST":
 
         form = CourseForm(request.POST)
@@ -151,6 +222,9 @@ def create_course(request):
 
 @staff_member_required
 def update_course(request, course_id):
+    """
+    ویرایش دوره (فقط مدرس دوره)
+    """
     course = get_object_or_404(
         Course,
         id=course_id,
@@ -197,6 +271,9 @@ def update_course(request, course_id):
 
 @staff_member_required
 def delete_course(request, course_id):
+    """
+    حذف دوره (فقط مدرس دوره)
+    """
     course = get_object_or_404(
         Course,
         id=course_id,
@@ -227,6 +304,9 @@ def delete_course(request, course_id):
 
 
 def register(request):
+    """
+    ثبت‌نام کاربر جدید و ایجاد خودکار Instructor
+    """
     if request.method == "POST":
 
         form = RegisterForm(request.POST)

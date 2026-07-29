@@ -36,7 +36,16 @@ class Course(models.Model):
 
     price = models.PositiveIntegerField()
 
+    # فیلدهای جدید اضافه شده
+    is_active = models.BooleanField(
+        default=True,
+        help_text="Designates whether the course is available for enrollment."
+    )
 
+    capacity = models.PositiveIntegerField(
+        default=0,
+        help_text="Maximum number of students allowed (0 = unlimited)."
+    )
 
     created_at = models.DateTimeField(
         auto_now_add=True,
@@ -61,6 +70,16 @@ class Enrollment(models.Model):
 
     enrolled_at = models.DateTimeField(
         auto_now_add=True,
+    )
+
+    # فیلدهای جدید برای پیگیری پیشرفت
+    completed_at = models.DateTimeField(
+        null=True,
+        blank=True,
+    )
+
+    is_completed = models.BooleanField(
+        default=False,
     )
 
     class Meta:
