@@ -4,116 +4,118 @@
 
 {% block content %}
 
-<div class="row">
+    <div class="row">
 
-    <!-- ستون سمت چپ: اطلاعات شخصی -->
-    <div class="col-md-4">
+        <!-- ستون سمت چپ: اطلاعات شخصی -->
+        <div class="col-md-4">
 
-        <div class="card shadow-sm">
+            <div class="card shadow-sm">
 
-            <div class="card-body text-center">
+                <div class="card-body text-center">
 
-                <!-- آواتار پیش‌فرض -->
-                <div class="mb-3">
-                    <i class="bi bi-person-circle" style="font-size: 80px; color: #6c757d;"></i>
+                    <!-- آواتار پیش‌فرض -->
+                    <div class="mb-3">
+                        <i class="bi bi-person-circle" style="font-size: 80px; color: #6c757d;"></i>
+                    </div>
+
+                    <h3>
+                        {{ profile_user.get_full_name|default:profile_user.username }}
+                    </h3>
+
+                    <p class="text-muted">
+                        @{{ profile_user.username }}
+                    </p>
+
+                    {% if instructor.phone %}
+                        <p>
+                            <i class="bi bi-telephone"></i> {{ instructor.phone }}
+                        </p>
+                    {% endif %}
+
+                    <hr>
+
+                    <p>
+                        <strong>Courses:</strong> {{ courses.count }}
+                    </p>
+
+                    {% if is_own_profile %}
+                        <a href="{% url 'edit_profile' %}" class="btn btn-primary w-100 mt-2">
+                            <i class="bi bi-pencil"></i> Edit Profile
+                        </a>
+                    {% endif %}
+
                 </div>
 
-                <h3>
-                    {{ profile_user.get_full_name|default:profile_user.username }}
-                </h3>
+            </div>
 
-                <p class="text-muted">
-                    @{{ profile_user.username }}
-                </p>
+        </div>
 
-                {% if instructor.phone %}
+        <!-- ستون سمت راست: بیوگرافی و دوره‌ها -->
+        <div class="col-md-8">
+
+            <!-- بخش بیوگرافی -->
+            <div class="card shadow-sm">
+
+                <div class="card-body">
+
+                    <h4>About Me</h4>
+
                     <p>
-                        <i class="bi bi-telephone"></i> {{ instructor.phone }}
+                        {{ instructor.bio|default:"This instructor has not added a bio yet." }}
                     </p>
-                {% endif %}
 
-                <hr>
-
-                <p>
-                    <strong>Courses:</strong> {{ courses.count }}
-                </p>
-
-                {% if is_own_profile %}
-                    <a href="#" class="btn btn-primary w-100 mt-2">
-                        Edit Profile
-                    </a>
-                {% endif %}
+                </div>
 
             </div>
 
-        </div>
+            <!-- بخش دوره‌ها -->
+            <div class="card shadow-sm mt-3">
 
-    </div>
+                <div class="card-body">
 
-    <!-- ستون سمت راست: بیوگرافی و دوره‌ها -->
-    <div class="col-md-8">
+                    <h4 class="mb-3">Courses by {{ profile_user.username }}</h4>
 
-        <!-- بخش بیوگرافی -->
-        <div class="card shadow-sm">
+                    <div class="row">
 
-            <div class="card-body">
+                        {% for course in courses %}
 
-                <h4>About Me</h4>
+                            <div class="col-md-6 mb-3">
 
-                <p>
-                    {{ instructor.bio|default:"This instructor has not added a bio yet." }}
-                </p>
+                                <div class="card h-100">
 
-            </div>
+                                    <div class="card-body">
 
-        </div>
+                                        <h5>{{ course.title }}</h5>
 
-        <!-- بخش دوره‌ها -->
-        <div class="card shadow-sm mt-3">
+                                        <p class="text-muted">
+                                            ${{ course.price }}
+                                        </p>
 
-            <div class="card-body">
+                                        <p class="text-muted small">
+                                            <i class="bi bi-people"></i>
+                                            {{ course.enrollments.count }} students
+                                        </p>
 
-                <h4 class="mb-3">Courses by {{ profile_user.username }}</h4>
+                                        <a href="{% url 'course_detail' course.id %}"
+                                           class="btn btn-sm btn-primary">
+                                            View Course
+                                        </a>
 
-                <div class="row">
-
-                    {% for course in courses %}
-
-                        <div class="col-md-6 mb-3">
-
-                            <div class="card h-100">
-
-                                <div class="card-body">
-
-                                    <h5>{{ course.title }}</h5>
-
-                                    <p class="text-muted">
-                                        ${{ course.price }}
-                                    </p>
-
-                                    <p class="text-muted small">
-                                        <i class="bi bi-people"></i>
-                                        {{ course.enrollments.count }} students
-                                    </p>
-
-                                    <a href="{% url 'course_detail' course.id %}"
-                                       class="btn btn-sm btn-primary">
-                                        View Course
-                                    </a>
+                                    </div>
 
                                 </div>
 
                             </div>
 
-                        </div>
+                        {% empty %}
 
-                    {% empty %}
+                            <p class="text-muted">
+                                This instructor has not created any courses yet.
+                            </p>
 
-                        <p class="text-muted">
-                            This instructor has not created any courses yet.
-                        </p>
+                        {% endfor %}
 
-                    {% endfor %}
+                    </div>
 
                 </div>
 
@@ -122,7 +124,5 @@
         </div>
 
     </div>
-
-</div>
 
 {% endblock %}

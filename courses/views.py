@@ -2,7 +2,7 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Count
 from django.http import HttpResponseForbidden
 from django.shortcuts import render, redirect, get_object_or_404
-from .forms import CourseForm, RegisterForm
+from .forms import CourseForm, RegisterForm , InstructorProfileForm
 from .models import Course, Instructor, Enrollment
 from django.contrib.auth import login
 from django.contrib.admin.views.decorators import staff_member_required
@@ -381,5 +381,45 @@ def instructor_profile(request, username):
             "courses": courses,
             "profile_user": user,
             "is_own_profile": is_own_profile,
+        }
+    )
+
+
+@login_required
+def edit_profile(request):
+    """
+    ویرایش پروفایل مدرس (فقط خود مدرس)
+    """
+    # بررسی اینکه کاربر مدرس است
+    if not hasattr(request.user, 'instructor'):
+        messages.error(
+            request,
+            "You don't have permission to access this page."
+        )
+        return redirect('course_list')
+
+    instructor = request.user.instructor
+
+    if request.method == "POST":
+        form = InstructorProfileForm(
+            request.POST,
+            instance=instructor
+        )
+
+        if form.is_valid():
+            form.save()
+            messages.success(
+                request,
+                "Your profile has been updated successfully."
+            )
+            return redirect('instructor_profile', username=request.user.username)
+    else:
+        form = InstructorProfileForm(instance=instructor)
+
+    return render(
+        request,
+        "courses/edit_profile.html",
+        {
+            "form": form,
         }
     )

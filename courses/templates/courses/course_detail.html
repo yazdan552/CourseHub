@@ -23,7 +23,10 @@
             </h3>
 
             <p>
-                {{ course.instructor }}
+                <a href="{% url 'instructor_profile' course.instructor.user.username %}"
+                   class="text-decoration-none">
+                    {{ course.instructor }}
+                </a>
             </p>
 
             <h3>

@@ -57,9 +57,16 @@ urlpatterns = [
         name="delete_course",
     ),
 
+    # .......
+    path(
+        "profile/edit/",
+        views.edit_profile,
+        name="edit_profile",
+    ),
     path(
         "profile/<str:username>/",  # username رو از مدل User می‌گیریم
         views.instructor_profile,
         name="instructor_profile",
     ),
+
 ]
