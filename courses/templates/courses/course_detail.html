@@ -18,6 +18,21 @@
 
             <hr>
 
+            <h3>Categories</h3>
+
+            <div class="mb-3">
+                {% if course.categories.all %}
+                    {% for category in course.categories.all %}
+                        <a href="{% url 'course_list' %}?category={{ category.slug }}"
+                           class="badge bg-primary text-decoration-none me-1">
+                            {{ category.name }}
+                        </a>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted">No categories assigned.</p>
+                {% endif %}
+            </div>
+
             <h3>
                 Instructor
             </h3>
