@@ -1,5 +1,5 @@
 from django.contrib.auth.decorators import login_required
-from django.db.models import Count
+from django.db.models import Count , Q
 from django.http import HttpResponseForbidden
 from django.shortcuts import render, redirect, get_object_or_404
 from .forms import CourseForm, RegisterForm , InstructorProfileForm
@@ -16,16 +16,28 @@ def course_list(request):
     """
     نمایش لیست تمام دوره‌ها با شمارش تعداد دانشجویان
     استفاده از annotate برای بهینه‌سازی Query
+    +قابلیت جستجو
     """
+    search_query = request.GET.get('q','').strip()
+
     courses = Course.objects.select_related('instructor').annotate(
         students_count=Count('enrollments')
     ).filter(is_active=True)  # فقط دوره‌های فعال رو نمایش بده
+
+    if search_query:
+        courses = courses.filter(
+            Q(title__icontains=search_query) |  # جستجو در عنوان
+            Q(description__icontains=search_query) |  # جستجو در توضیحات
+            Q(instructor__user__username__icontains=search_query)  # جستجو در نام مدرس
+        )
 
     return render(
         request,
         "courses/course_list.html",
         {
             "courses": courses,
+            "search_query": search_query,  # ارسال به template برای نمایش در فرم
+            "total_results": courses.count(),  # تعداد نتایج
         },
     )
 
