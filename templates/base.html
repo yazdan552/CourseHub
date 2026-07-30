@@ -52,6 +52,20 @@
                 id="navbarNav"
         >
 
+            <form method="get" action="{% url 'course_list' %}" class="d-flex mx-auto">
+                <input
+                        type="text"
+                        name="q"
+                        class="form-control form-control-sm me-2"
+                        placeholder="Search courses..."
+                        value="{{ search_query }}"
+                        style="width: 250px;"
+                >
+                <button type="submit" class="btn btn-sm btn-outline-light">
+                    <i class="bi bi-search"></i>
+                </button>
+            </form>
+
             <ul class="navbar-nav ms-auto">
 
                 <li class="nav-item">
