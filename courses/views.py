@@ -1,13 +1,14 @@
 from django.contrib.auth.decorators import login_required
-from django.db.models import Count , Q
+from django.db.models import Count, Q
 from django.http import HttpResponseForbidden
 from django.shortcuts import render, redirect, get_object_or_404
-from .forms import CourseForm, RegisterForm , InstructorProfileForm
+from .forms import CourseForm, RegisterForm, InstructorProfileForm
 from .models import Course, Instructor, Enrollment
 from django.contrib.auth import login
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib import messages
 from django.contrib.auth.models import User
+
 
 # Create your views here.
 
@@ -18,12 +19,16 @@ def course_list(request):
     استفاده از annotate برای بهینه‌سازی Query
     +قابلیت جستجو
     """
-    search_query = request.GET.get('q','').strip()
+    search_query = request.GET.get('q', '').strip()
+    min_price = request.GET.get('min_price', '')
+    max_price = request.GET.get('max_price', '')
+    sort_by = request.GET.get('sort', 'newest')
 
     courses = Course.objects.select_related('instructor').annotate(
         students_count=Count('enrollments')
-    ).filter(is_active=True)  # فقط دوره‌های فعال رو نمایش بده
+    ).filter(is_active=True)
 
+    # جست و جو
     if search_query:
         courses = courses.filter(
             Q(title__icontains=search_query) |  # جستجو در عنوان
@@ -31,13 +36,46 @@ def course_list(request):
             Q(instructor__user__username__icontains=search_query)  # جستجو در نام مدرس
         )
 
+    # ================ فیلتر قیمت ================
+    if min_price:
+        try:
+            min_price = int(min_price)
+            courses = courses.filter(price__gte=min_price)
+        except ValueError:
+            min_price = ''
+
+    if max_price:
+        try:
+            max_price = int(max_price)
+            courses = courses.filter(price__lte=max_price)
+        except ValueError:
+            max_price = ''
+
+    # ================ مرتب‌سازی ================
+    if sort_by == 'price_asc':
+        courses = courses.order_by('price')  # قیمت از کم به زیاد
+    elif sort_by == 'price_desc':
+        courses = courses.order_by('-price')  # قیمت از زیاد به کم
+    elif sort_by == 'popular':
+        courses = courses.order_by('-students_count')  # بیشترین دانشجو
+    elif sort_by == 'newest':
+        courses = courses.order_by('-created_at')  # جدیدترین
+    else:
+        courses = courses.order_by('-created_at')  # پیش‌فرض
+
+    # ================ تعداد نتایج ================
+    total_results = courses.count()
+
     return render(
         request,
         "courses/course_list.html",
         {
             "courses": courses,
-            "search_query": search_query,  # ارسال به template برای نمایش در فرم
-            "total_results": courses.count(),  # تعداد نتایج
+            "search_query": search_query,
+            "min_price": min_price,
+            "max_price": max_price,
+            "sort_by": sort_by,
+            "total_results": total_results,
         },
     )
 
