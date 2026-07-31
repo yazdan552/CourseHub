@@ -5,8 +5,7 @@
             <!-- ================ دکمه قبلی ================ -->
             {% if page_obj.has_previous %}
                 <li class="page-item">
-                    <a class="page-link"
-                       href="?page={{ page_obj.previous_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if min_price %}&min_price={{ min_price }}{% endif %}{% if max_price %}&max_price={{ max_price }}{% endif %}{% if sort_by != 'newest' %}&sort={{ sort_by }}{% endif %}{% if category_slug %}&category={{ category_slug }}{% endif %}">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{{ params }}">
                         <i class="bi bi-chevron-left"></i> Previous
                     </a>
                 </li>
@@ -24,8 +23,7 @@
                     </li>
                 {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
                     <li class="page-item">
-                        <a class="page-link"
-                           href="?page={{ num }}{% if search_query %}&q={{ search_query }}{% endif %}{% if min_price %}&min_price={{ min_price }}{% endif %}{% if max_price %}&max_price={{ max_price }}{% endif %}{% if sort_by != 'newest' %}&sort={{ sort_by }}{% endif %}{% if category_slug %}&category={{ category_slug }}{% endif %}">
+                        <a class="page-link" href="?page={{ num }}{{ params }}">
                             {{ num }}
                         </a>
                     </li>
@@ -35,8 +33,7 @@
             <!-- ================ دکمه بعدی ================ -->
             {% if page_obj.has_next %}
                 <li class="page-item">
-                    <a class="page-link"
-                       href="?page={{ page_obj.next_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if min_price %}&min_price={{ min_price }}{% endif %}{% if max_price %}&max_price={{ max_price }}{% endif %}{% if sort_by != 'newest' %}&sort={{ sort_by }}{% endif %}{% if category_slug %}&category={{ category_slug }}{% endif %}">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{{ params }}">
                         Next <i class="bi bi-chevron-right"></i>
                     </a>
                 </li>
@@ -52,6 +49,6 @@
     <!-- ================ نمایش اطلاعات ================ -->
     <div class="text-center text-muted small">
         Showing page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
-        ({{ page_obj.paginator.count }} total courses)
+        ({{ page_obj.paginator.count }} total items)
     </div>
 {% endif %}
