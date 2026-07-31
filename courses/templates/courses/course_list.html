@@ -2,296 +2,307 @@
 
 {% extends "base.html" %}
 
+
+
+{% block title %}All Courses - CourseHub{% endblock %}
+
+{% block description %}
+    Browse all available courses on CourseHub. Find the best courses in programming,
+    web development, data science, and more from expert instructors.
+{% endblock %}
+
+
+
 {% block content %}
 
-<div class="row">
+    <div class="row">
 
-    <!-- ================ SIDEBAR: Categories ================ -->
-    <div class="col-md-3">
+        <!-- ================ SIDEBAR: Categories ================ -->
+        <div class="col-md-3">
 
-        <div class="card shadow-sm mb-4">
+            <div class="card shadow-sm mb-4">
 
-            <div class="card-body">
+                <div class="card-body">
 
-                <h5 class="card-title">
-                    <i class="bi bi-tags"></i> Categories
-                </h5>
+                    <h5 class="card-title">
+                        <i class="bi bi-tags"></i> Categories
+                    </h5>
 
-                <hr>
+                    <hr>
 
-                <ul class="list-unstyled">
+                    <ul class="list-unstyled">
 
-                    <!-- گزینه "All Courses" -->
-                    <li class="mb-2">
-                        <a href="{% url 'course_list' %}"
-                           class="text-decoration-none {% if not category_slug %}fw-bold text-primary{% endif %}">
-                            All Courses
-                            <span class="badge bg-secondary float-end">
+                        <!-- گزینه "All Courses" -->
+                        <li class="mb-2">
+                            <a href="{% url 'course_list' %}"
+                               class="text-decoration-none {% if not category_slug %}fw-bold text-primary{% endif %}">
+                                All Courses
+                                <span class="badge bg-secondary float-end">
                                 {{ total_results }}
                             </span>
-                        </a>
-                    </li>
-
-                    <!-- لیست دسته‌بندی‌ها -->
-                    {% for category in categories %}
-                        <li class="mb-2">
-                            <a href="{% url 'course_list' %}?category={{ category.slug }}{% if search_query %}&q={{ search_query }}{% endif %}{% if min_price %}&min_price={{ min_price }}{% endif %}{% if max_price %}&max_price={{ max_price }}{% endif %}{% if sort_by != 'newest' %}&sort={{ sort_by }}{% endif %}"
-                               class="text-decoration-none {% if category.slug == category_slug %}fw-bold text-primary{% endif %}">
-                                {{ category.name }}
-                                <span class="badge bg-secondary float-end">
-                                    {{ category.course_count }}
-                                </span>
                             </a>
                         </li>
-                    {% empty %}
-                        <li class="text-muted">No categories available.</li>
-                    {% endfor %}
 
-                </ul>
-
-                {% if category_slug %}
-                    <hr>
-                    <a href="{% url 'course_list' %}" class="btn btn-sm btn-outline-danger w-100">
-                        <i class="bi bi-x-circle"></i> Clear Category Filter
-                    </a>
-                {% endif %}
-
-            </div>
-
-        </div>
-
-    </div>
-    <!-- ====================================================== -->
-
-    <!-- ================ MAIN CONTENT ================ -->
-    <div class="col-md-9">
-
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h1 class="mb-0">Courses</h1>
-            {% if search_query or min_price or max_price or category_slug %}
-                <span class="text-muted">
-                    {{ total_results }} result{{ total_results|pluralize }} found
-                    {% if search_query %} for "{{ search_query }}"{% endif %}
-                    {% if category_slug %}
-                        {% with cat=categories|first %}
-                            in {{ cat.name|default:category_slug }}
-                        {% endwith %}
-                    {% endif %}
-                </span>
-            {% endif %}
-        </div>
-
-        <!-- Search and Filters Form -->
-        <div class="card shadow-sm mb-4">
-            <div class="card-body">
-
-                <form method="get" action="{% url 'course_list' %}">
-
-                    <div class="row g-3">
-
-                        <!-- جستجوی متن -->
-                        <div class="col-md-4">
-                            <div class="input-group">
-                                <input
-                                    type="text"
-                                    name="q"
-                                    class="form-control"
-                                    placeholder="Search courses..."
-                                    value="{{ search_query }}"
-                                >
-                                <button type="submit" class="btn btn-primary">
-                                    <i class="bi bi-search"></i>
-                                </button>
-                                {% if search_query %}
-                                    <a href="{% url 'course_list' %}" class="btn btn-outline-secondary">
-                                        <i class="bi bi-x-circle"></i>
-                                    </a>
-                                {% endif %}
-                            </div>
-                        </div>
-
-                        <!-- ================ NEW: Hidden field for category ================ -->
-                        {% if category_slug %}
-                            <input type="hidden" name="category" value="{{ category_slug }}">
-                        {% endif %}
-                        <!-- ================================================================ -->
-
-                        <!-- فیلتر قیمت حداقل -->
-                        <div class="col-md-2">
-                            <input
-                                type="number"
-                                name="min_price"
-                                class="form-control"
-                                placeholder="Min $"
-                                value="{{ min_price }}"
-                                min="0"
-                            >
-                        </div>
-
-                        <!-- فیلتر قیمت حداکثر -->
-                        <div class="col-md-2">
-                            <input
-                                type="number"
-                                name="max_price"
-                                class="form-control"
-                                placeholder="Max $"
-                                value="{{ max_price }}"
-                                min="0"
-                            >
-                        </div>
-
-                        <!-- مرتب‌سازی -->
-                        <div class="col-md-2">
-                            <select name="sort" class="form-select">
-                                <option value="newest" {% if sort_by == 'newest' %}selected{% endif %}>
-                                    Newest
-                                </option>
-                                <option value="price_asc" {% if sort_by == 'price_asc' %}selected{% endif %}>
-                                    Price: Low to High
-                                </option>
-                                <option value="price_desc" {% if sort_by == 'price_desc' %}selected{% endif %}>
-                                    Price: High to Low
-                                </option>
-                                <option value="popular" {% if sort_by == 'popular' %}selected{% endif %}>
-                                    Most Popular
-                                </option>
-                            </select>
-                        </div>
-
-                        <!-- دکمه اعمال فیلتر -->
-                        <div class="col-md-2">
-                            <button type="submit" class="btn btn-success w-100">
-                                <i class="bi bi-funnel"></i> Apply
-                            </button>
-                        </div>
-
-                    </div>
-
-                    <!-- نمایش فیلترهای فعال -->
-                    <div class="mt-3">
-                        {% if search_query or min_price or max_price or category_slug or sort_by != 'newest' %}
-                            <div class="d-flex flex-wrap gap-2">
-                                <span class="text-muted small">Active filters:</span>
-
-                                {% if category_slug %}
-                                    <span class="badge bg-info">
-                                        Category: {{ category_slug }}
+                        <!-- لیست دسته‌بندی‌ها -->
+                        {% for category in categories %}
+                            <li class="mb-2">
+                                <a href="{% url 'category_detail' category.slug %}"
+                                   class="text-decoration-none {% if category.slug == category_slug %}fw-bold text-primary{% endif %}">
+                                    {{ category.name }}
+                                    <span class="badge bg-secondary float-end">
+                                        {{ category.course_count }}
                                     </span>
-                                {% endif %}
-
-                                {% if search_query %}
-                                    <span class="badge bg-primary">
-                                        Search: "{{ search_query }}"
-                                    </span>
-                                {% endif %}
-
-                                {% if min_price %}
-                                    <span class="badge bg-secondary">
-                                        Min: ${{ min_price }}
-                                    </span>
-                                {% endif %}
-
-                                {% if max_price %}
-                                    <span class="badge bg-secondary">
-                                        Max: ${{ max_price }}
-                                    </span>
-                                {% endif %}
-
-                                {% if sort_by == 'price_asc' %}
-                                    <span class="badge bg-warning text-dark">Price: Low to High</span>
-                                {% elif sort_by == 'price_desc' %}
-                                    <span class="badge bg-warning text-dark">Price: High to Low</span>
-                                {% elif sort_by == 'popular' %}
-                                    <span class="badge bg-warning text-dark">Most Popular</span>
-                                {% endif %}
-
-                                <a href="{% url 'course_list' %}" class="btn btn-sm btn-outline-danger">
-                                    <i class="bi bi-x-circle"></i> Clear All
                                 </a>
-                            </div>
-                        {% endif %}
-                    </div>
+                            </li>
+                        {% empty %}
+                            <li class="text-muted">No categories available.</li>
+                        {% endfor %}
 
-                </form>
+                    </ul>
+
+                    {% if category_slug %}
+                        <hr>
+                        <a href="{% url 'course_list' %}" class="btn btn-sm btn-outline-danger w-100">
+                            <i class="bi bi-x-circle"></i> Clear Category Filter
+                        </a>
+                    {% endif %}
+
+                </div>
 
             </div>
+
         </div>
+        <!-- ====================================================== -->
 
-        <!-- Results -->
-        <div class="row">
+        <!-- ================ MAIN CONTENT ================ -->
+        <div class="col-md-9">
 
-            {% for course in courses %}
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="mb-0">Courses</h1>
+                {% if search_query or min_price or max_price or category_slug %}
+                    <span class="text-muted">
+                    {{ total_results }} result{{ total_results|pluralize }} found
+                        {% if search_query %} for "{{ search_query }}"{% endif %}
+                        {% if category_slug %}
+                            {% with cat=categories|first %}
+                                in {{ cat.name|default:category_slug }}
+                            {% endwith %}
+                        {% endif %}
+                </span>
+                {% endif %}
+            </div>
 
-                <div class="col-md-6 mb-4">
+            <!-- Search and Filters Form -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
 
-                    <div class="card h-100 shadow-sm">
+                    <form method="get" action="{% url 'course_list' %}">
 
-                        <div class="card-body">
+                        <div class="row g-3">
 
-                            <h4>
-                                {{ course.title }}
-                            </h4>
-
-                            <p class="text-muted">
-                                {{ course.instructor }}
-                            </p>
-
-                            <!-- ================ NEW: نمایش دسته‌بندی‌ها در کارت ================ -->
-                            <div class="mb-2">
-                                {% for category in course.categories.all|slice:":2" %}
-                                    <span class="badge bg-secondary">{{ category.name }}</span>
-                                {% endfor %}
-                                {% if course.categories.count > 2 %}
-                                    <span class="badge bg-secondary">+{{ course.categories.count|add:"-2" }}</span>
-                                {% endif %}
+                            <!-- جستجوی متن -->
+                            <div class="col-md-4">
+                                <div class="input-group">
+                                    <input
+                                            type="text"
+                                            name="q"
+                                            class="form-control"
+                                            placeholder="Search courses..."
+                                            value="{{ search_query }}"
+                                    >
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="bi bi-search"></i>
+                                    </button>
+                                    {% if search_query %}
+                                        <a href="{% url 'course_list' %}" class="btn btn-outline-secondary">
+                                            <i class="bi bi-x-circle"></i>
+                                        </a>
+                                    {% endif %}
+                                </div>
                             </div>
+
+                            <!-- ================ NEW: Hidden field for category ================ -->
+                            {% if category_slug %}
+                                <input type="hidden" name="category" value="{{ category_slug }}">
+                            {% endif %}
                             <!-- ================================================================ -->
 
-                            <p class="fw-bold text-primary">
-                                ${{ course.price }}
-                            </p>
+                            <!-- فیلتر قیمت حداقل -->
+                            <div class="col-md-2">
+                                <input
+                                        type="number"
+                                        name="min_price"
+                                        class="form-control"
+                                        placeholder="Min $"
+                                        value="{{ min_price }}"
+                                        min="0"
+                                >
+                            </div>
 
-                            <p class="text-muted small">
-                                <i class="bi bi-people"></i> {{ course.students_count }} students
-                            </p>
+                            <!-- فیلتر قیمت حداکثر -->
+                            <div class="col-md-2">
+                                <input
+                                        type="number"
+                                        name="max_price"
+                                        class="form-control"
+                                        placeholder="Max $"
+                                        value="{{ max_price }}"
+                                        min="0"
+                                >
+                            </div>
 
-                            <a
-                                href="{% url 'course_detail' course.id %}"
-                                class="btn btn-primary w-100"
-                            >
-                                View Details
-                            </a>
+                            <!-- مرتب‌سازی -->
+                            <div class="col-md-2">
+                                <select name="sort" class="form-select">
+                                    <option value="newest" {% if sort_by == 'newest' %}selected{% endif %}>
+                                        Newest
+                                    </option>
+                                    <option value="price_asc" {% if sort_by == 'price_asc' %}selected{% endif %}>
+                                        Price: Low to High
+                                    </option>
+                                    <option value="price_desc" {% if sort_by == 'price_desc' %}selected{% endif %}>
+                                        Price: High to Low
+                                    </option>
+                                    <option value="popular" {% if sort_by == 'popular' %}selected{% endif %}>
+                                        Most Popular
+                                    </option>
+                                </select>
+                            </div>
+
+                            <!-- دکمه اعمال فیلتر -->
+                            <div class="col-md-2">
+                                <button type="submit" class="btn btn-success w-100">
+                                    <i class="bi bi-funnel"></i> Apply
+                                </button>
+                            </div>
 
                         </div>
 
-                        <div class="card-footer bg-transparent text-muted small">
-                            <i class="bi bi-calendar"></i>
-                            Created: {{ course.created_at|date:"M d, Y" }}
+                        <!-- نمایش فیلترهای فعال -->
+                        <div class="mt-3">
+                            {% if search_query or min_price or max_price or category_slug or sort_by != 'newest' %}
+                                <div class="d-flex flex-wrap gap-2">
+                                    <span class="text-muted small">Active filters:</span>
+
+                                    {% if category_slug %}
+                                        <span class="badge bg-info">
+                                        Category: {{ category_slug }}
+                                    </span>
+                                    {% endif %}
+
+                                    {% if search_query %}
+                                        <span class="badge bg-primary">
+                                        Search: "{{ search_query }}"
+                                    </span>
+                                    {% endif %}
+
+                                    {% if min_price %}
+                                        <span class="badge bg-secondary">
+                                        Min: ${{ min_price }}
+                                    </span>
+                                    {% endif %}
+
+                                    {% if max_price %}
+                                        <span class="badge bg-secondary">
+                                        Max: ${{ max_price }}
+                                    </span>
+                                    {% endif %}
+
+                                    {% if sort_by == 'price_asc' %}
+                                        <span class="badge bg-warning text-dark">Price: Low to High</span>
+                                    {% elif sort_by == 'price_desc' %}
+                                        <span class="badge bg-warning text-dark">Price: High to Low</span>
+                                    {% elif sort_by == 'popular' %}
+                                        <span class="badge bg-warning text-dark">Most Popular</span>
+                                    {% endif %}
+
+                                    <a href="{% url 'course_list' %}" class="btn btn-sm btn-outline-danger">
+                                        <i class="bi bi-x-circle"></i> Clear All
+                                    </a>
+                                </div>
+                            {% endif %}
+                        </div>
+
+                    </form>
+
+                </div>
+            </div>
+
+            <!-- Results -->
+            <div class="row">
+
+                {% for course in courses %}
+
+                    <div class="col-md-6 mb-4">
+
+                        <div class="card h-100 shadow-sm">
+
+                            <div class="card-body">
+
+                                <h4>
+                                    {{ course.title }}
+                                </h4>
+
+                                <p class="text-muted">
+                                    {{ course.instructor }}
+                                </p>
+
+                                <!-- ================ NEW: نمایش دسته‌بندی‌ها در کارت ================ -->
+                                <div class="mb-2">
+                                    {% for category in course.categories.all|slice:":2" %}
+                                        <span class="badge bg-secondary">{{ category.name }}</span>
+                                    {% endfor %}
+                                    {% if course.categories.count > 2 %}
+                                        <span class="badge bg-secondary">+{{ course.categories.count|add:"-2" }}</span>
+                                    {% endif %}
+                                </div>
+                                <!-- ================================================================ -->
+
+                                <p class="fw-bold text-primary">
+                                    ${{ course.price }}
+                                </p>
+
+                                <p class="text-muted small">
+                                    <i class="bi bi-people"></i> {{ course.students_count }} students
+                                </p>
+
+                                <a
+                                        href="{% url 'course_detail' course.id %}"
+                                        class="btn btn-primary w-100"
+                                >
+                                    View Details
+                                </a>
+
+                            </div>
+
+                            <div class="card-footer bg-transparent text-muted small">
+                                <i class="bi bi-calendar"></i>
+                                Created: {{ course.created_at|date:"M d, Y" }}
+                            </div>
+
                         </div>
 
                     </div>
 
-                </div>
+                {% empty %}
 
-            {% empty %}
+                    <div class="col-12 text-center py-5">
+                        <h4 class="text-muted">
+                            <i class="bi bi-search"></i> No courses found
+                        </h4>
+                        <p class="text-muted">
+                            Try adjusting your search terms or filters.
+                            <a href="{% url 'course_list' %}">Clear all filters</a>
+                        </p>
+                    </div>
 
-                <div class="col-12 text-center py-5">
-                    <h4 class="text-muted">
-                        <i class="bi bi-search"></i> No courses found
-                    </h4>
-                    <p class="text-muted">
-                        Try adjusting your search terms or filters.
-                        <a href="{% url 'course_list' %}">Clear all filters</a>
-                    </p>
-                </div>
+                {% endfor %}
 
-            {% endfor %}
+            </div>
 
         </div>
+        <!-- ======================================== -->
 
     </div>
-    <!-- ======================================== -->
-
-</div>
 
 {% endblock %}

@@ -91,6 +91,39 @@ def course_list(request):
     )
 
 
+def category_detail(request, slug):
+    """
+    نمایش صفحه اختصاصی یک دسته‌بندی با تمام دوره‌های آن
+    """
+    category = get_object_or_404(
+        Category.objects.prefetch_related('courses__instructor'),
+        slug=slug
+    )
+
+    courses = category.courses.filter(
+        is_active=True
+    ).select_related('instructor').annotate(
+        students_count=Count('enrollments')
+    ).order_by('-created_at')
+
+    # دریافت همه دسته‌بندی‌ها برای سایدبار
+    categories = Category.objects.all().annotate(
+        course_count=Count('courses', filter=Q(courses__is_active=True))
+    )
+
+    total_results = courses.count()
+
+    return render(
+        request,
+        "courses/category_detail.html",
+        {
+            "category": category,
+            "courses": courses,
+            "categories": categories,
+            "total_results": total_results,
+        }
+    )
+
 @login_required
 def my_courses(request):
     """
