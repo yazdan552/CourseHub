@@ -1,6 +1,14 @@
-<!-- templates/courses/course_form.html -->
-
 {% extends "base.html" %}
+
+
+{% block title %}
+    {% if form.instance.pk %}
+        Edit Course - CourseHub
+    {% else %}
+        Create Course - CourseHub
+    {% endif %}
+{% endblock %}
+
 
 {% block content %}
 
