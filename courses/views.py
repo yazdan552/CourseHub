@@ -2,12 +2,13 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Count, Q
 from django.http import HttpResponseForbidden
 from django.shortcuts import render, redirect, get_object_or_404
-from .forms import CourseForm, RegisterForm, InstructorProfileForm
-from .models import Course, Instructor, Enrollment
 from django.contrib.auth import login
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib import messages
 from django.contrib.auth.models import User
+
+from .forms import CourseForm, RegisterForm, InstructorProfileForm
+from .models import Course, Instructor, Enrollment, Category
 
 
 # Create your views here.
@@ -15,18 +16,23 @@ from django.contrib.auth.models import User
 
 def course_list(request):
     """
-    نمایش لیست تمام دوره‌ها با شمارش تعداد دانشجویان
+    نمایش لیست تمام دوره‌ها
     استفاده از annotate برای بهینه‌سازی Query
     +قابلیت جستجو
+    +دسته بندی
     """
     search_query = request.GET.get('q', '').strip()
     min_price = request.GET.get('min_price', '')
     max_price = request.GET.get('max_price', '')
     sort_by = request.GET.get('sort', 'newest')
+    category_slug = request.GET.get('category', '')
 
     courses = Course.objects.select_related('instructor').annotate(
         students_count=Count('enrollments')
     ).filter(is_active=True)
+
+    if category_slug:
+        courses = courses.filter(categories__slug=category_slug)
 
     # جست و جو
     if search_query:
@@ -36,7 +42,7 @@ def course_list(request):
             Q(instructor__user__username__icontains=search_query)  # جستجو در نام مدرس
         )
 
-    # ================ فیلتر قیمت ================
+    # قیمت
     if min_price:
         try:
             min_price = int(min_price)
@@ -51,7 +57,7 @@ def course_list(request):
         except ValueError:
             max_price = ''
 
-    # ================ مرتب‌سازی ================
+    # مرتب‌سازی
     if sort_by == 'price_asc':
         courses = courses.order_by('price')  # قیمت از کم به زیاد
     elif sort_by == 'price_desc':
@@ -62,6 +68,9 @@ def course_list(request):
         courses = courses.order_by('-created_at')  # جدیدترین
     else:
         courses = courses.order_by('-created_at')  # پیش‌فرض
+
+    # دریافت همه دسته‌بندی‌ها برای نمایش در سایدبار
+    categories = Category.objects.all().annotate(course_count=Count('courses', filter=Q(courses__is_active=True)))
 
     # ================ تعداد نتایج ================
     total_results = courses.count()
@@ -75,6 +84,8 @@ def course_list(request):
             "min_price": min_price,
             "max_price": max_price,
             "sort_by": sort_by,
+            "category_slug": category_slug,
+            "categories": categories,
             "total_results": total_results,
         },
     )
@@ -251,6 +262,8 @@ def create_course(request):
 
             course.save()
 
+            form.save_m2m()
+
             messages.success(
                 request,
                 "Course created successfully.",
@@ -275,6 +288,14 @@ def update_course(request, course_id):
     """
     ویرایش دوره (فقط مدرس دوره)
     """
+    # اطمینان از وجود Instructor
+    if not hasattr(request.user, 'instructor'):
+        Instructor.objects.create(
+            user=request.user,
+            phone="",
+            bio=""
+        )
+
     course = get_object_or_404(
         Course,
         id=course_id,
@@ -293,6 +314,7 @@ def update_course(request, course_id):
 
         if form.is_valid():
             form.save()
+            form.save_m2m()
 
             messages.success(
                 request,
