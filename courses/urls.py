@@ -68,5 +68,10 @@ urlpatterns = [
         views.instructor_profile,
         name="instructor_profile",
     ),
+    path(
+        "category/<slug:slug>/",
+        views.category_detail,
+        name="category_detail",
+    ),
 
 ]

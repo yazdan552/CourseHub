@@ -1,5 +1,6 @@
 from django.contrib.auth.models import User
 from django.db import models
+from django.utils.text import slugify
 
 
 class Instructor(models.Model):
@@ -21,6 +22,57 @@ class Instructor(models.Model):
         return self.user.username
 
 
+# ================ NEW: Category Model ================
+class Category(models.Model):
+    """
+    مدل دسته‌بندی برای سازماندهی دوره‌ها
+    """
+    name = models.CharField(
+        max_length=100,
+        unique=True,
+        help_text="Enter the category name (e.g., Python, Web Development)"
+    )
+
+    slug = models.SlugField(
+        max_length=120,
+        unique=True,
+        blank=True,
+        help_text="URL-friendly version of the name (auto-generated)"
+    )
+
+    description = models.TextField(
+        blank=True,
+        help_text="Optional description of the category"
+    )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+    )
+
+    class Meta:
+        verbose_name = "Category"
+        verbose_name_plural = "Categories"
+        ordering = ['name']  # مرتب‌سازی بر اساس نام
+
+    def save(self, *args, **kwargs):
+        """
+        override کردن متد save برای ساخت خودکار slug
+        """
+        if not self.slug:
+            self.slug = slugify(self.name)
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.name
+
+    def get_course_count(self):
+        """
+        تعداد دوره‌های این دسته‌بندی
+        """
+        return self.courses.count()
+
+
+
 class Course(models.Model):
     title = models.CharField(
         max_length=150,
@@ -36,7 +88,6 @@ class Course(models.Model):
 
     price = models.PositiveIntegerField()
 
-    # فیلدهای جدید اضافه شده
     is_active = models.BooleanField(
         default=True,
         help_text="Designates whether the course is available for enrollment."
@@ -49,6 +100,13 @@ class Course(models.Model):
 
     created_at = models.DateTimeField(
         auto_now_add=True,
+    )
+
+    categories = models.ManyToManyField(
+        Category,
+        related_name="courses",
+        blank=True,
+        help_text="Select categories for this course"
     )
 
     def __str__(self):
@@ -72,7 +130,6 @@ class Enrollment(models.Model):
         auto_now_add=True,
     )
 
-    # فیلدهای جدید برای پیگیری پیشرفت
     completed_at = models.DateTimeField(
         null=True,
         blank=True,

@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-from .models import Course, Instructor
+from .models import Course, Instructor , Category
 
 
 class CourseForm(forms.ModelForm):
@@ -16,7 +16,22 @@ class CourseForm(forms.ModelForm):
         widgets = {
             'description': forms.Textarea(attrs={'rows': 5}),
             'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'categories': forms.SelectMultiple(attrs={
+                'class': 'form-select',
+                'size': 5,  # نمایش ۵ آیتم
+            }),
         }
+
+    def clean_categories(self):
+        """
+        اطمینان از اینکه حداقل یک دسته‌بندی انتخاب شده است
+        """
+        categories = self.cleaned_data.get('categories')
+        if not categories:
+            raise forms.ValidationError(
+                "Please select at least one category."
+            )
+        return categories
 
 
 class RegisterForm(UserCreationForm):

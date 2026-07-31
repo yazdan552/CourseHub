@@ -1,6 +1,14 @@
-<!-- templates/courses/instructor_profile.html -->
-
 {% extends "base.html" %}
+
+
+{% block title %}{{ profile_user.get_full_name|default:profile_user.username }} - Instructor Profile - CourseHub{% endblock %}
+
+{% block description %}
+    Learn from {{ profile_user.get_full_name|default:profile_user.username }}.
+    Expert instructor with {{ courses.count }} courses on CourseHub.
+    Check out their courses and start learning today!
+{% endblock %}
+
 
 {% block content %}
 
