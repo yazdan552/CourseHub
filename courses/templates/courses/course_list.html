@@ -300,6 +300,11 @@
 
             </div>
 
+
+            {% if page_obj.paginator.num_pages > 1 %}
+                {% include "courses/pagination.html" %}
+            {% endif %}
+
         </div>
         <!-- ======================================== -->
 

@@ -6,6 +6,8 @@ from django.contrib.auth import login
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib import messages
 from django.contrib.auth.models import User
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+
 
 from .forms import CourseForm, RegisterForm, InstructorProfileForm
 from .models import Course, Instructor, Enrollment, Category
@@ -17,15 +19,13 @@ from .models import Course, Instructor, Enrollment, Category
 def course_list(request):
     """
     نمایش لیست تمام دوره‌ها
-    استفاده از annotate برای بهینه‌سازی Query
-    +قابلیت جستجو
-    +دسته بندی
     """
     search_query = request.GET.get('q', '').strip()
     min_price = request.GET.get('min_price', '')
     max_price = request.GET.get('max_price', '')
     sort_by = request.GET.get('sort', 'newest')
     category_slug = request.GET.get('category', '')
+    page_number = request.GET.get('page', 1)
 
     courses = Course.objects.select_related('instructor').annotate(
         students_count=Count('enrollments')
@@ -72,6 +72,18 @@ def course_list(request):
     # دریافت همه دسته‌بندی‌ها برای نمایش در سایدبار
     categories = Category.objects.all().annotate(course_count=Count('courses', filter=Q(courses__is_active=True)))
 
+    #Paginator
+    paginator = Paginator(courses, 6)
+
+    try:
+        page_obj = paginator.page(page_number)
+    except PageNotAnInteger:
+        page_obj = paginator.page(1)
+    except EmptyPage:
+        page_obj = paginator.page(paginator.num_pages)
+
+
+
     # ================ تعداد نتایج ================
     total_results = courses.count()
 
@@ -79,7 +91,8 @@ def course_list(request):
         request,
         "courses/course_list.html",
         {
-            "courses": courses,
+            "courses": page_obj,
+            "page_obj": page_obj,
             "search_query": search_query,
             "min_price": min_price,
             "max_price": max_price,
@@ -95,6 +108,9 @@ def category_detail(request, slug):
     """
     نمایش صفحه اختصاصی یک دسته‌بندی با تمام دوره‌های آن
     """
+    page_number = request.GET.get('page', 1)
+
+
     category = get_object_or_404(
         Category.objects.prefetch_related('courses__instructor'),
         slug=slug
@@ -113,12 +129,23 @@ def category_detail(request, slug):
 
     total_results = courses.count()
 
+    #paginator
+    paginator = Paginator(courses, 6)
+
+    try:
+        page_obj = paginator.page(page_number)
+    except PageNotAnInteger:
+        page_obj = paginator.page(1)
+    except EmptyPage:
+        page_obj = paginator.page(paginator.num_pages)
+
     return render(
         request,
         "courses/category_detail.html",
         {
             "category": category,
-            "courses": courses,
+            "courses": page_obj,
+            "page_obj": page_obj,
             "categories": categories,
             "total_results": total_results,
         }
@@ -130,6 +157,10 @@ def my_courses(request):
     نمایش دوره‌هایی که کاربر در آنها ثبت‌نام کرده
     تفکیک دوره‌های در حال پیشرفت و تکمیل شده
     """
+    page_number = request.GET.get('page', 1)
+
+
+
     # دوره‌های در حال پیشرفت
     enrollments = request.user.enrollments.select_related(
         'course__instructor'
@@ -144,12 +175,25 @@ def my_courses(request):
         is_completed=True
     )
 
+    total_enrollments = enrollments.count()
+
+    paginator = Paginator(enrollments, 6)
+
+    try:
+        page_obj = paginator.page(page_number)
+    except PageNotAnInteger:
+        page_obj = paginator.page(1)
+    except EmptyPage:
+        page_obj = paginator.page(paginator.num_pages)
+
     return render(
         request,
         "courses/my_courses.html",
         {
-            "enrollments": enrollments,
+            "enrollments": page_obj,
+            "page_obj": page_obj,
             "completed_courses": completed_courses,
+            "total_enrollments": total_enrollments,
         }
     )
 
@@ -451,8 +495,10 @@ def instructor_profile(request, username):
     """
     نمایش پروفایل عمومی یک مدرس
     """
-    # دریافت کاربر با username داده شده
-    # select_related: اطلاعات instructor را همراه با user دریافت می‌کند
+    page_number = request.GET.get('page', 1)
+
+
+
     user = get_object_or_404(
         User.objects.select_related('instructor'),
         username=username
@@ -473,6 +519,17 @@ def instructor_profile(request, username):
     # استفاده از prefetch_related برای بهینه‌سازی
     courses = instructor.courses.all().prefetch_related('enrollments')
 
+    total_courses = courses.count()
+
+    paginator = Paginator(courses, 4)
+
+    try:
+        courses = paginator.page(page_number)
+    except PageNotAnInteger:
+        courses = paginator.page(1)
+    except EmptyPage:
+        courses = paginator.page(paginator.num_pages)
+
     # بررسی اینکه کاربر جاری خودش این مدرس است یا نه
     is_own_profile = False
     if request.user.is_authenticated and request.user == user:
@@ -484,8 +541,10 @@ def instructor_profile(request, username):
         {
             "instructor": instructor,
             "courses": courses,
+            "page_obj": courses,
             "profile_user": user,
             "is_own_profile": is_own_profile,
+            "total_courses": total_courses,
         }
     )
 

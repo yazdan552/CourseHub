@@ -11,171 +11,175 @@
 
 {% block content %}
 
-<div class="row">
+    <div class="row">
 
-    <!-- ================ SIDEBAR: Categories ================ -->
-    <div class="col-md-3">
+        <!-- ================ SIDEBAR: Categories ================ -->
+        <div class="col-md-3">
 
-        <div class="card shadow-sm mb-4">
+            <div class="card shadow-sm mb-4">
 
-            <div class="card-body">
+                <div class="card-body">
 
-                <h5 class="card-title">
-                    <i class="bi bi-tags"></i> Categories
-                </h5>
+                    <h5 class="card-title">
+                        <i class="bi bi-tags"></i> Categories
+                    </h5>
 
-                <hr>
+                    <hr>
 
-                <ul class="list-unstyled">
+                    <ul class="list-unstyled">
 
-                    <li class="mb-2">
-                        <a href="{% url 'course_list' %}"
-                           class="text-decoration-none">
-                            All Courses
-                            <span class="badge bg-secondary float-end">
+                        <li class="mb-2">
+                            <a href="{% url 'course_list' %}"
+                               class="text-decoration-none">
+                                All Courses
+                                <span class="badge bg-secondary float-end">
                                 {{ categories|length }}
                             </span>
-                        </a>
-                    </li>
-
-                    {% for cat in categories %}
-                        <li class="mb-2">
-                            <a href="{% url 'category_detail' cat.slug %}"
-                               class="text-decoration-none {% if cat.slug == category.slug %}fw-bold text-primary{% endif %}">
-                                {{ cat.name }}
-                                <span class="badge bg-secondary float-end">
-                                    {{ cat.course_count }}
-                                </span>
                             </a>
                         </li>
-                    {% empty %}
-                        <li class="text-muted">No categories available.</li>
-                    {% endfor %}
 
-                </ul>
+                        {% for cat in categories %}
+                            <li class="mb-2">
+                                <a href="{% url 'category_detail' cat.slug %}"
+                                   class="text-decoration-none {% if cat.slug == category.slug %}fw-bold text-primary{% endif %}">
+                                    {{ cat.name }}
+                                    <span class="badge bg-secondary float-end">
+                                    {{ cat.course_count }}
+                                </span>
+                                </a>
+                            </li>
+                        {% empty %}
+                            <li class="text-muted">No categories available.</li>
+                        {% endfor %}
+
+                    </ul>
+
+                </div>
 
             </div>
 
         </div>
+        <!-- ====================================================== -->
 
-    </div>
-    <!-- ====================================================== -->
+        <!-- ================ MAIN CONTENT ================ -->
+        <div class="col-md-9">
 
-    <!-- ================ MAIN CONTENT ================ -->
-    <div class="col-md-9">
+            <!-- ================ BREADCRUMB ================ -->
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a href="{% url 'course_list' %}">Home</a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <a href="{% url 'course_list' %}">Courses</a>
+                    </li>
+                    <li class="breadcrumb-item active" aria-current="page">
+                        {{ category.name }}
+                    </li>
+                </ol>
+            </nav>
+            <!-- ============================================= -->
 
-        <!-- ================ BREADCRUMB ================ -->
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item">
-                    <a href="{% url 'course_list' %}">Home</a>
-                </li>
-                <li class="breadcrumb-item">
-                    <a href="{% url 'course_list' %}">Courses</a>
-                </li>
-                <li class="breadcrumb-item active" aria-current="page">
-                    {{ category.name }}
-                </li>
-            </ol>
-        </nav>
-        <!-- ============================================= -->
+            <!-- ================ HEADER ================ -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
 
-        <!-- ================ HEADER ================ -->
-        <div class="card shadow-sm mb-4">
-            <div class="card-body">
+                    <h1 class="mb-2">{{ category.name }}</h1>
 
-                <h1 class="mb-2">{{ category.name }}</h1>
+                    {% if category.description %}
+                        <p class="text-muted">{{ category.description }}</p>
+                    {% endif %}
 
-                {% if category.description %}
-                    <p class="text-muted">{{ category.description }}</p>
-                {% endif %}
-
-                <p class="mb-0">
+                    <p class="mb-0">
                     <span class="badge bg-primary">
                         {{ total_results }} course{{ total_results|pluralize }}
                     </span>
-                </p>
+                    </p>
 
+                </div>
             </div>
-        </div>
-        <!-- ========================================= -->
+            <!-- ========================================= -->
 
-        <!-- ================ COURSE GRID ================ -->
-        <div class="row">
+            <!-- ================ COURSE GRID ================ -->
+            <div class="row">
 
-            {% for course in courses %}
+                {% for course in courses %}
 
-                <div class="col-md-6 mb-4">
+                    <div class="col-md-6 mb-4">
 
-                    <div class="card h-100 shadow-sm">
+                        <div class="card h-100 shadow-sm">
 
-                        <div class="card-body">
+                            <div class="card-body">
 
-                            <h4>
-                                {{ course.title }}
-                            </h4>
+                                <h4>
+                                    {{ course.title }}
+                                </h4>
 
-                            <p class="text-muted">
-                                {{ course.instructor }}
-                            </p>
+                                <p class="text-muted">
+                                    {{ course.instructor }}
+                                </p>
 
-                            <!-- نمایش دسته‌بندی‌ها -->
-                            <div class="mb-2">
-                                {% for cat in course.categories.all|slice:":2" %}
-                                    <span class="badge bg-secondary">{{ cat.name }}</span>
-                                {% endfor %}
-                                {% if course.categories.count > 2 %}
-                                    <span class="badge bg-secondary">
+                                <!-- نمایش دسته‌بندی‌ها -->
+                                <div class="mb-2">
+                                    {% for cat in course.categories.all|slice:":2" %}
+                                        <span class="badge bg-secondary">{{ cat.name }}</span>
+                                    {% endfor %}
+                                    {% if course.categories.count > 2 %}
+                                        <span class="badge bg-secondary">
                                         +{{ course.categories.count|add:"-2" }}
                                     </span>
-                                {% endif %}
+                                    {% endif %}
+                                </div>
+
+                                <p class="fw-bold text-primary">
+                                    ${{ course.price }}
+                                </p>
+
+                                <p class="text-muted small">
+                                    <i class="bi bi-people"></i>
+                                    {{ course.students_count }} students
+                                </p>
+
+                                <a href="{% url 'course_detail' course.id %}"
+                                   class="btn btn-primary w-100">
+                                    View Details
+                                </a>
+
                             </div>
 
-                            <p class="fw-bold text-primary">
-                                ${{ course.price }}
-                            </p>
+                            <div class="card-footer bg-transparent text-muted small">
+                                <i class="bi bi-calendar"></i>
+                                Created: {{ course.created_at|date:"M d, Y" }}
+                            </div>
 
-                            <p class="text-muted small">
-                                <i class="bi bi-people"></i>
-                                {{ course.students_count }} students
-                            </p>
-
-                            <a href="{% url 'course_detail' course.id %}"
-                               class="btn btn-primary w-100">
-                                View Details
-                            </a>
-
-                        </div>
-
-                        <div class="card-footer bg-transparent text-muted small">
-                            <i class="bi bi-calendar"></i>
-                            Created: {{ course.created_at|date:"M d, Y" }}
                         </div>
 
                     </div>
 
-                </div>
+                {% empty %}
 
-            {% empty %}
+                    <div class="col-12 text-center py-5">
+                        <h4 class="text-muted">
+                            <i class="bi bi-folder"></i> No courses in this category yet
+                        </h4>
+                        <p class="text-muted">
+                            Check back later for new courses.
+                            <a href="{% url 'course_list' %}">Browse all courses</a>
+                        </p>
+                    </div>
 
-                <div class="col-12 text-center py-5">
-                    <h4 class="text-muted">
-                        <i class="bi bi-folder"></i> No courses in this category yet
-                    </h4>
-                    <p class="text-muted">
-                        Check back later for new courses.
-                        <a href="{% url 'course_list' %}">Browse all courses</a>
-                    </p>
-                </div>
+                {% endfor %}
 
-            {% endfor %}
+            </div>
+            <!-- ============================================= -->
+
+            {% if page_obj.paginator.num_pages > 1 %}
+                {% include "courses/pagination.html" with params="" %}
+            {% endif %}
 
         </div>
         <!-- ============================================= -->
 
     </div>
-    <!-- ============================================= -->
-
-</div>
 
 {% endblock %}
