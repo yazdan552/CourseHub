@@ -6,6 +6,8 @@ from django.contrib.auth import login
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib import messages
 from django.contrib.auth.models import User
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+
 
 from .forms import CourseForm, RegisterForm, InstructorProfileForm
 from .models import Course, Instructor, Enrollment, Category
@@ -17,15 +19,13 @@ from .models import Course, Instructor, Enrollment, Category
 def course_list(request):
     """
     نمایش لیست تمام دوره‌ها
-    استفاده از annotate برای بهینه‌سازی Query
-    +قابلیت جستجو
-    +دسته بندی
     """
     search_query = request.GET.get('q', '').strip()
     min_price = request.GET.get('min_price', '')
     max_price = request.GET.get('max_price', '')
     sort_by = request.GET.get('sort', 'newest')
     category_slug = request.GET.get('category', '')
+    page_number = request.GET.get('page', 1)
 
     courses = Course.objects.select_related('instructor').annotate(
         students_count=Count('enrollments')
@@ -72,6 +72,18 @@ def course_list(request):
     # دریافت همه دسته‌بندی‌ها برای نمایش در سایدبار
     categories = Category.objects.all().annotate(course_count=Count('courses', filter=Q(courses__is_active=True)))
 
+    #Paginator
+    paginator = Paginator(courses, 6)
+
+    try:
+        page_obj = paginator.page(page_number)
+    except PageNotAnInteger:
+        page_obj = paginator.page(1)
+    except EmptyPage:
+        page_obj = paginator.page(paginator.num_pages)
+
+
+
     # ================ تعداد نتایج ================
     total_results = courses.count()
 
@@ -79,7 +91,8 @@ def course_list(request):
         request,
         "courses/course_list.html",
         {
-            "courses": courses,
+            "courses": page_obj,
+            "page_obj": page_obj,
             "search_query": search_query,
             "min_price": min_price,
             "max_price": max_price,
