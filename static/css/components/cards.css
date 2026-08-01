@@ -1,0 +1,317 @@
+/* ============================================
+   COURSE CARDS
+   ============================================ */
+.course-card {
+    background: white;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    transition: var(--transition);
+    overflow: hidden;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--gray-200);
+    position: relative;
+}
+
+.course-card:hover {
+    transform: translateY(-8px);
+    box-shadow: var(--shadow-xl);
+    border-color: var(--primary-light);
+}
+
+.course-card .card-body {
+    flex: 1;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+}
+
+.course-card .card-title {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--gray-900);
+    margin-bottom: 0.5rem;
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.course-card .card-title a {
+    color: inherit;
+    text-decoration: none;
+    transition: var(--transition);
+}
+
+.course-card .card-title a:hover {
+    color: var(--primary);
+}
+
+.course-card .instructor-name {
+    color: var(--gray-500);
+    font-size: 0.875rem;
+    margin-bottom: 0.75rem;
+}
+
+.course-card .instructor-name a {
+    color: var(--gray-600);
+    text-decoration: none;
+    transition: var(--transition);
+}
+
+.course-card .instructor-name a:hover {
+    color: var(--primary);
+    text-decoration: underline;
+}
+
+.course-card .course-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    margin-bottom: 0.75rem;
+}
+
+.course-card .course-tags .badge {
+    font-size: 0.65rem;
+    padding: 0.2rem 0.6rem;
+}
+
+.course-card .course-price {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--primary);
+    margin: 0.5rem 0;
+}
+
+.course-card .course-stats {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    font-size: 0.8rem;
+    color: var(--gray-500);
+    margin-bottom: 1rem;
+}
+
+.course-card .course-stats i {
+    margin-right: 0.25rem;
+}
+
+.course-card .card-footer {
+    background: var(--gray-50);
+    padding: 0.75rem 1.5rem;
+    font-size: 0.8rem;
+    color: var(--gray-500);
+    border-top: 1px solid var(--gray-200);
+}
+
+.course-card .status-badge {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    font-size: 0.65rem;
+    padding: 0.25rem 0.6rem;
+    border-radius: var(--radius-full);
+    font-weight: 600;
+}
+
+.course-card .status-badge.active {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.course-card .status-badge.inactive {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+/* ============================================
+   PROFILE CARDS
+   ============================================ */
+.profile-card {
+    text-align: center;
+    padding: 2rem 1.5rem;
+}
+
+.profile-card .avatar {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background: var(--primary-bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+    font-size: 3rem;
+    color: var(--primary);
+    border: 4px solid white;
+    box-shadow: var(--shadow-md);
+}
+
+.profile-card .avatar img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.profile-card .name {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+}
+
+.profile-card .username {
+    color: var(--gray-500);
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+.profile-card .bio {
+    color: var(--gray-600);
+    font-size: 0.9rem;
+    margin: 1rem 0;
+    line-height: 1.6;
+}
+
+.profile-card .stats {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    padding: 1rem 0;
+    border-top: 1px solid var(--gray-200);
+    border-bottom: 1px solid var(--gray-200);
+    margin: 1rem 0;
+}
+
+.profile-card .stats .stat-item {
+    text-align: center;
+}
+
+.profile-card .stats .stat-number {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--gray-900);
+}
+
+.profile-card .stats .stat-label {
+    font-size: 0.75rem;
+    color: var(--gray-500);
+}
+
+/* ============================================
+   DASHBOARD CARDS
+   ============================================ */
+.stat-card {
+    background: white;
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    box-shadow: var(--shadow);
+    transition: var(--transition);
+    border: 1px solid var(--gray-200);
+    height: 100%;
+}
+
+.stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+}
+
+.stat-card .stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.stat-card .stat-icon.primary {
+    background: var(--primary-bg);
+    color: var(--primary);
+}
+
+.stat-card .stat-icon.success {
+    background: #dcfce7;
+    color: var(--success);
+}
+
+.stat-card .stat-icon.warning {
+    background: #fef3c7;
+    color: var(--warning);
+}
+
+.stat-card .stat-icon.danger {
+    background: #fee2e2;
+    color: var(--danger);
+}
+
+.stat-card .stat-value {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--gray-900);
+    line-height: 1.2;
+}
+
+.stat-card .stat-label {
+    color: var(--gray-500);
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.stat-card .stat-change {
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin-top: 0.5rem;
+}
+
+.stat-card .stat-change.positive {
+    color: var(--success);
+}
+
+.stat-card .stat-change.negative {
+    color: var(--danger);
+}
+
+/* ============================================
+   CATEGORY CARDS
+   ============================================ */
+.category-card {
+    background: white;
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    box-shadow: var(--shadow);
+    transition: var(--transition);
+    border: 1px solid var(--gray-200);
+    text-align: center;
+    cursor: pointer;
+    text-decoration: none;
+    color: inherit;
+    display: block;
+}
+
+.category-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--primary-light);
+}
+
+.category-card .category-icon {
+    font-size: 2.5rem;
+    margin-bottom: 0.75rem;
+    display: block;
+}
+
+.category-card .category-name {
+    font-weight: 600;
+    font-size: 1rem;
+    color: var(--gray-900);
+}
+
+.category-card .category-count {
+    font-size: 0.8rem;
+    color: var(--gray-500);
+}

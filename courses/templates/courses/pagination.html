@@ -1,8 +1,7 @@
 {% if page_obj.has_other_pages %}
     <nav aria-label="Page navigation">
-        <ul class="pagination justify-content-center">
-
-            <!-- ================ دکمه قبلی ================ -->
+        <ul class="pagination">
+            <!-- دکمه قبلی -->
             {% if page_obj.has_previous %}
                 <li class="page-item">
                     <a class="page-link" href="?page={{ page_obj.previous_page_number }}{{ params }}">
@@ -15,7 +14,7 @@
                 </li>
             {% endif %}
 
-            <!-- ================ شماره صفحات ================ -->
+            <!-- شماره صفحات -->
             {% for num in page_obj.paginator.page_range %}
                 {% if page_obj.number == num %}
                     <li class="page-item active">
@@ -23,14 +22,12 @@
                     </li>
                 {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
                     <li class="page-item">
-                        <a class="page-link" href="?page={{ num }}{{ params }}">
-                            {{ num }}
-                        </a>
+                        <a class="page-link" href="?page={{ num }}{{ params }}">{{ num }}</a>
                     </li>
                 {% endif %}
             {% endfor %}
 
-            <!-- ================ دکمه بعدی ================ -->
+            <!-- دکمه بعدی -->
             {% if page_obj.has_next %}
                 <li class="page-item">
                     <a class="page-link" href="?page={{ page_obj.next_page_number }}{{ params }}">
@@ -42,11 +39,9 @@
                     <span class="page-link">Next <i class="bi bi-chevron-right"></i></span>
                 </li>
             {% endif %}
-
         </ul>
     </nav>
 
-    <!-- ================ نمایش اطلاعات ================ -->
     <div class="text-center text-muted small">
         Showing page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
         ({{ page_obj.paginator.count }} total items)

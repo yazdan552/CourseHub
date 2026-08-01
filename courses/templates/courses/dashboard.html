@@ -1,5 +1,3 @@
-<!-- templates/courses/dashboard.html -->
-
 {% extends "base.html" %}
 {% load static %}
 
@@ -15,7 +13,7 @@
 
     <!-- ================ HEADER ================ -->
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="mb-0">
+        <h1 class="section-title mb-0">
             <i class="bi bi-speedometer2"></i> Dashboard
         </h1>
         <div>
@@ -25,103 +23,69 @@
 
     <!-- ================ STATS CARDS ================ -->
     <div class="row g-3 mb-4">
-
-        <!-- دوره‌ها -->
         <div class="col-md-3">
-            <div class="card shadow-sm border-0 h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="text-muted mb-1">Total Courses</h6>
-                            <h2 class="mb-0">{{ total_courses }}</h2>
-                            <small class="text-success">
-                                <i class="bi bi-arrow-up"></i> {{ active_courses }} active
-                            </small>
-                        </div>
-                        <div class="bg-primary bg-opacity-10 p-3 rounded-circle">
-                            <i class="bi bi-book fs-3 text-primary"></i>
-                        </div>
-                    </div>
+            <div class="stat-card">
+                <div class="stat-icon primary">
+                    <i class="bi bi-book"></i>
+                </div>
+                <div class="stat-value">{{ total_courses }}</div>
+                <div class="stat-label">Total Courses</div>
+                <div class="stat-change positive">
+                    <i class="bi bi-arrow-up"></i> {{ active_courses }} active
                 </div>
             </div>
         </div>
 
-        <!-- دانشجویان -->
         <div class="col-md-3">
-            <div class="card shadow-sm border-0 h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="text-muted mb-1">Total Students</h6>
-                            <h2 class="mb-0">{{ total_students }}</h2>
-                            <small class="text-muted">
-                                <i class="bi bi-people"></i> {{ total_enrollments }} enrollments
-                            </small>
-                        </div>
-                        <div class="bg-success bg-opacity-10 p-3 rounded-circle">
-                            <i class="bi bi-people fs-3 text-success"></i>
-                        </div>
-                    </div>
+            <div class="stat-card">
+                <div class="stat-icon success">
+                    <i class="bi bi-people"></i>
+                </div>
+                <div class="stat-value">{{ total_students }}</div>
+                <div class="stat-label">Total Students</div>
+                <div class="stat-change">
+                    <i class="bi bi-person"></i> {{ total_enrollments }} enrollments
                 </div>
             </div>
         </div>
 
-        <!-- درآمد -->
         <div class="col-md-3">
-            <div class="card shadow-sm border-0 h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="text-muted mb-1">Total Revenue</h6>
-                            <h2 class="mb-0">${{ total_revenue|floatformat:0 }}</h2>
-                            <small class="text-muted">
-                                <i class="bi bi-currency-dollar"></i> lifetime earnings
-                            </small>
-                        </div>
-                        <div class="bg-warning bg-opacity-10 p-3 rounded-circle">
-                            <i class="bi bi-currency-dollar fs-3 text-warning"></i>
-                        </div>
-                    </div>
+            <div class="stat-card">
+                <div class="stat-icon warning">
+                    <i class="bi bi-currency-dollar"></i>
                 </div>
+                <div class="stat-value">${{ total_revenue|floatformat:0 }}</div>
+                <div class="stat-label">Total Revenue</div>
+                <div class="stat-change">lifetime earnings</div>
             </div>
         </div>
 
-        <!-- نرخ فعال بودن -->
         <div class="col-md-3">
-            <div class="card shadow-sm border-0 h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="text-muted mb-1">Active Rate</h6>
-                            <h2 class="mb-0">{{ active_percentage }}%</h2>
-                            <small class="text-muted">
-                                <i class="bi bi-check-circle"></i> {{ active_courses }} of {{ total_courses }}
-                            </small>
-                        </div>
-                        <div class="bg-info bg-opacity-10 p-3 rounded-circle">
-                            <i class="bi bi-graph-up-arrow fs-3 text-info"></i>
-                        </div>
-                    </div>
+            <div class="stat-card">
+                <div class="stat-icon danger">
+                    <i class="bi bi-graph-up-arrow"></i>
+                </div>
+                <div class="stat-value">{{ active_percentage }}%</div>
+                <div class="stat-label">Active Rate</div>
+                <div class="stat-change">
+                    <i class="bi bi-check-circle"></i> {{ active_courses }} of {{ total_courses }}
                 </div>
             </div>
         </div>
-
     </div>
 
     <!-- ================ CHARTS SECTION ================ -->
     <div class="row g-3 mb-4">
-
-        <!-- نمودار ثبت‌نام‌ها -->
         <div class="col-lg-6">
             <div class="card shadow-sm border-0 h-100">
                 <div class="card-header bg-transparent">
-                    <h5 class="mb-0">
-                        <i class="bi bi-graph-up"></i> Enrollments Trend
-                    </h5>
+                    <h5 class="mb-0"><i class="bi bi-graph-up"></i> Enrollments Trend</h5>
                 </div>
                 <div class="card-body">
                     {% if has_chart_data %}
-                        <canvas id="enrollmentChart" height="200"></canvas>
+                        <div class="chart-container">
+                            <canvas id="enrollmentChart"></canvas>
+                        </div>
                     {% else %}
                         <p class="text-muted text-center py-4">
                             <i class="bi bi-inbox fs-3 d-block mb-2"></i>
@@ -132,17 +96,16 @@
             </div>
         </div>
 
-        <!-- نمودار درآمد -->
         <div class="col-lg-6">
             <div class="card shadow-sm border-0 h-100">
                 <div class="card-header bg-transparent">
-                    <h5 class="mb-0">
-                        <i class="bi bi-currency-dollar"></i> Revenue Trend
-                    </h5>
+                    <h5 class="mb-0"><i class="bi bi-currency-dollar"></i> Revenue Trend</h5>
                 </div>
                 <div class="card-body">
                     {% if has_chart_data %}
-                        <canvas id="revenueChart" height="200"></canvas>
+                        <div class="chart-container">
+                            <canvas id="revenueChart"></canvas>
+                        </div>
                     {% else %}
                         <p class="text-muted text-center py-4">
                             <i class="bi bi-inbox fs-3 d-block mb-2"></i>
@@ -152,16 +115,12 @@
                 </div>
             </div>
         </div>
-
     </div>
 
     <!-- ================ TWO COLUMN LAYOUT ================ -->
     <div class="row">
-
-        <!-- ستون چپ: دوره‌های پرفروش و دسته‌بندی‌ها -->
         <div class="col-lg-6">
-
-            <!-- دوره‌های پرفروش (دانشجو) -->
+            <!-- Top Courses (by Students) -->
             <div class="card shadow-sm border-0 mb-4">
                 <div class="card-header bg-transparent">
                     <h5 class="mb-0">
@@ -170,7 +129,7 @@
                 </div>
                 <div class="card-body">
                     {% if top_courses %}
-                        <div class="list-group list-group-flush">
+                        <div class="list-group">
                             {% for course in top_courses %}
                                 <div class="list-group-item d-flex justify-content-between align-items-center">
                                     <div>
@@ -190,41 +149,10 @@
                 </div>
             </div>
 
-            <!-- دوره‌های پرفروش (درآمد) -->
-            <div class="card shadow-sm border-0 mb-4">
-                <div class="card-header bg-transparent">
-                    <h5 class="mb-0">
-                        <i class="bi bi-currency-dollar text-success"></i> Top Courses (by Revenue)
-                    </h5>
-                </div>
-                <div class="card-body">
-                    {% if top_revenue_courses %}
-                        <div class="list-group list-group-flush">
-                            {% for course in top_revenue_courses %}
-                                <div class="list-group-item d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <strong>{{ course.title }}</strong>
-                                        <br>
-                                        <small class="text-muted">${{ course.price }}</small>
-                                    </div>
-                                    <span class="badge bg-success rounded-pill">
-                                        ${{ course.revenue|floatformat:0 }}
-                                    </span>
-                                </div>
-                            {% endfor %}
-                        </div>
-                    {% else %}
-                        <p class="text-muted">No revenue data yet.</p>
-                    {% endif %}
-                </div>
-            </div>
-
-            <!-- آمار دسته‌بندی‌ها -->
+            <!-- Categories Stats -->
             <div class="card shadow-sm border-0">
                 <div class="card-header bg-transparent">
-                    <h5 class="mb-0">
-                        <i class="bi bi-tags"></i> Categories Stats
-                    </h5>
+                    <h5 class="mb-0"><i class="bi bi-tags"></i> Categories Stats</h5>
                 </div>
                 <div class="card-body">
                     {% if category_stats %}
@@ -233,7 +161,7 @@
                                 <span>{{ cat.name }}</span>
                                 <span class="badge bg-secondary">{{ cat.course_count }} courses</span>
                             </div>
-                            <div class="progress mb-3" style="height: 6px;">
+                            <div class="progress mb-3">
                                 <div class="progress-bar bg-primary"
                                      style="width: {% widthratio cat.course_count total_courses 100 %}%;">
                                 </div>
@@ -244,18 +172,13 @@
                     {% endif %}
                 </div>
             </div>
-
         </div>
 
-        <!-- ستون راست: آخرین فعالیت‌ها -->
         <div class="col-lg-6">
-
-            <!-- آخرین ثبت‌نام‌ها -->
+            <!-- Recent Enrollments -->
             <div class="card shadow-sm border-0 mb-4">
                 <div class="card-header bg-transparent">
-                    <h5 class="mb-0">
-                        <i class="bi bi-clock-history"></i> Recent Enrollments
-                    </h5>
+                    <h5 class="mb-0"><i class="bi bi-clock-history"></i> Recent Enrollments</h5>
                 </div>
                 <div class="card-body p-0">
                     {% if recent_enrollments %}
@@ -265,13 +188,9 @@
                                     <div>
                                         <strong>{{ enrollment.user.username }}</strong>
                                         <br>
-                                        <small class="text-muted">
-                                            {{ enrollment.course.title }}
-                                        </small>
+                                        <small class="text-muted">{{ enrollment.course.title }}</small>
                                     </div>
-                                    <small class="text-muted">
-                                        {{ enrollment.enrolled_at|timesince }} ago
-                                    </small>
+                                    <small class="text-muted">{{ enrollment.enrolled_at|timesince }} ago</small>
                                 </div>
                             {% endfor %}
                         </div>
@@ -284,12 +203,10 @@
                 </div>
             </div>
 
-            <!-- دوره‌های اخیر -->
+            <!-- Recent Courses -->
             <div class="card shadow-sm border-0">
                 <div class="card-header bg-transparent">
-                    <h5 class="mb-0">
-                        <i class="bi bi-plus-circle"></i> Recent Courses
-                    </h5>
+                    <h5 class="mb-0"><i class="bi bi-plus-circle"></i> Recent Courses</h5>
                 </div>
                 <div class="card-body">
                     {% if recent_courses %}
@@ -305,9 +222,7 @@
                                             </span>
                                         </small>
                                     </div>
-                                    <small class="text-muted">
-                                        {{ course.created_at|timesince }} ago
-                                    </small>
+                                    <small class="text-muted">{{ course.created_at|timesince }} ago</small>
                                 </div>
                             {% endfor %}
                         </div>
@@ -317,12 +232,10 @@
                 </div>
             </div>
 
-            <!-- ================ Student Progress ================ -->
+            <!-- Student Progress -->
             <div class="card shadow-sm border-0 mt-4">
                 <div class="card-header bg-transparent">
-                    <h5 class="mb-0">
-                        <i class="bi bi-check2-circle"></i> Student Progress
-                    </h5>
+                    <h5 class="mb-0"><i class="bi bi-check2-circle"></i> Student Progress</h5>
                 </div>
                 <div class="card-body">
                     <div class="row text-center">
@@ -335,8 +248,7 @@
                             <small class="text-muted">Completed</small>
                         </div>
                     </div>
-                    <!-- نوار پیشرفت کلی -->
-                    <div class="progress mt-2" style="height: 8px;">
+                    <div class="progress mt-2">
                         <div class="progress-bar bg-success"
                              style="width: {% widthratio completed_enrollments total_enrollments 100 %}%;">
                         </div>
@@ -347,24 +259,18 @@
                     </small>
                 </div>
             </div>
-
         </div>
-
     </div>
-
 </div>
 
 <!-- ================ DATA FOR JAVASCRIPT ================ -->
 {% if has_chart_data %}
 <script>
-    // داده‌ها را به صورت متغیر جهانی در دسترس قرار می‌دهیم
-    // این متغیرها در فایل static/js/dashboard.js استفاده می‌شوند
     var enrollmentLabels = {{ chart_labels|safe }};
     var enrollmentData = {{ chart_data|safe }};
     var revenueLabels = {{ chart_labels|safe }};
     var revenueData = {{ chart_revenue|safe }};
 </script>
 {% endif %}
-<!-- ==================================================== -->
 
 {% endblock %}

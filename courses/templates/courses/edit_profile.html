@@ -1,75 +1,56 @@
 {% extends "base.html" %}
 
-
 {% block title %}Edit Profile - CourseHub{% endblock %}
-
-
-
 
 {% block content %}
 
 <div class="row justify-content-center">
-
     <div class="col-md-6">
-
-        <div class="card shadow-sm">
-
+        <div class="card shadow-sm fade-in">
             <div class="card-body">
-
-                <h2 class="mb-4">Edit Profile</h2>
-
-                <hr>
+                <h2 class="section-title mb-4">
+                    <i class="bi bi-pencil"></i> Edit Profile
+                </h2>
 
                 <form method="post">
-
                     {% csrf_token %}
 
-                    <!-- نمایش فرم به صورت دستی برای کنترل بهتر -->
-                    <div class="mb-3">
+                    <div class="form-group">
                         <label for="{{ form.phone.id_for_label }}" class="form-label">
                             {{ form.phone.label }}
                         </label>
                         {{ form.phone }}
                         {% if form.phone.errors %}
-                            <div class="text-danger small">
+                            <div class="validation-feedback invalid">
                                 {{ form.phone.errors }}
                             </div>
                         {% endif %}
                     </div>
 
-                    <div class="mb-3">
+                    <div class="form-group">
                         <label for="{{ form.bio.id_for_label }}" class="form-label">
                             {{ form.bio.label }}
                         </label>
                         {{ form.bio }}
                         {% if form.bio.errors %}
-                            <div class="text-danger small">
+                            <div class="validation-feedback invalid">
                                 {{ form.bio.errors }}
                             </div>
                         {% endif %}
                     </div>
 
-                    <div class="d-grid gap-2 d-md-flex">
-
+                    <div class="btn-group mt-3">
                         <button type="submit" class="btn btn-success">
-                            Save Changes
+                            <i class="bi bi-check-circle"></i> Save Changes
                         </button>
-
-                        <a href="{% url 'instructor_profile' user.username %}"
-                           class="btn btn-secondary">
-                            Cancel
+                        <a href="{% url 'instructor_profile' user.username %}" class="btn btn-secondary">
+                            <i class="bi bi-x-circle"></i> Cancel
                         </a>
-
                     </div>
-
                 </form>
-
             </div>
-
         </div>
-
     </div>
-
 </div>
 
 {% endblock %}

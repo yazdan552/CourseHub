@@ -1,6 +1,5 @@
 {% extends "base.html" %}
 
-
 {% block title %}{{ course.title }} - CourseHub{% endblock %}
 
 {% block description %}
@@ -9,166 +8,143 @@
     Price: ${{ course.price }}. Enroll now!
 {% endblock %}
 
-
-
-
 {% block content %}
 
-    <div class="card shadow-sm">
-
-        <div class="card-body">
-
-            <h1>
-                {{ course.title }}
-            </h1>
-
-            {% if not course.is_active %}
-                <div class="alert alert-warning">
-                    This course is currently inactive.
-                </div>
-            {% endif %}
-
-            <hr>
-
-            <h3>Categories</h3>
-
-            <div class="mb-3">
-                {% if course.categories.all %}
-                    {% for category in course.categories.all %}
-                        <a href="{% url 'category_detail' category.slug %}"
-                           class="badge bg-primary text-decoration-none me-1">
-                            {{ category.name }}
+<!-- ================ COURSE HEADER ================ -->
+<div class="course-header">
+    <div class="container">
+        <div class="row align-items-center">
+            <!-- ستون چپ: عنوان و اطلاعات -->
+            <div class="col-lg-8">
+                <h1 class="course-title">{{ course.title }}</h1>
+                <div class="course-meta">
+                    <span>
+                        <i class="bi bi-person"></i>
+                        <a href="{% url 'instructor_profile' course.instructor.user.username %}"
+                           class="text-white text-decoration-none">
+                            {{ course.instructor }}
                         </a>
-                    {% endfor %}
-                {% else %}
-                    <p class="text-muted">No categories assigned.</p>
-                {% endif %}
+                    </span>
+                    <span><i class="bi bi-people"></i> {{ course.enrollments.count }} students</span>
+                    <span><i class="bi bi-calendar"></i> {{ course.created_at|date:"M d, Y" }}</span>
+                </div>
             </div>
 
-            <h3>
-                Instructor
-            </h3>
+            <!-- ستون راست: قیمت -->
+            <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
+                <span class="course-price-badge">${{ course.price }}</span>
+            </div>
+        </div>
+    </div>
+</div>
 
-            <p>
-                <a href="{% url 'instructor_profile' course.instructor.user.username %}"
-                   class="text-decoration-none">
-                    {{ course.instructor }}
-                </a>
-            </p>
+<!-- ================ COURSE CONTENT ================ -->
+<div class="container mt-4">
+    <div class="course-content">
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <!-- Categories -->
+                    <div class="mb-4">
+                        <h5><i class="bi bi-tags"></i> Categories</h5>
+                        <div>
+                            {% if course.categories.all %}
+                                {% for category in course.categories.all %}
+                                    <a href="{% url 'category_detail' category.slug %}"
+                                       class="badge bg-primary text-decoration-none me-1 p-2">
+                                        {{ category.name }}
+                                    </a>
+                                {% endfor %}
+                            {% else %}
+                                <p class="text-muted">No categories assigned.</p>
+                            {% endif %}
+                        </div>
+                    </div>
 
-            <h3>
-                Price
-            </h3>
+                    <!-- Description -->
+                    <div class="course-description">
+                        <h5><i class="bi bi-file-text"></i> Description</h5>
+                        <p>{{ course.description }}</p>
+                    </div>
 
-            <p>
-                ${{ course.price }}
-            </p>
-
-            <h3>
-                Students
-            </h3>
-
-            <p>
-                {{ course.enrollments.count }}
-                {% if course.capacity > 0 %}
-                    / {{ course.capacity }}
-                {% endif %}
-            </p>
-
-            <h3>
-                Description
-            </h3>
-
-            <p>
-                {{ course.description }}
-            </p>
-
-            {% if user.is_authenticated %}
-
-                {% if user.instructor != course.instructor %}
-
-                    {% if is_enrolled %}
-
-                        <form
-                                method="post"
-                                action="{% url 'unenroll_course' course.id %}"
-                        >
-
-                            {% csrf_token %}
-
-                            <button
-                                    type="submit"
-                                    class="btn btn-danger"
-                            >
-                                Unenroll
-                            </button>
-
-                        </form>
-
-                    {% else %}
-
-                        {% if course.is_active and course.enrollments.count < course.capacity or course.capacity == 0 %}
-                            <form
-                                    method="post"
-                                    action="{% url 'enroll_course' course.id %}"
-                            >
-
-                                {% csrf_token %}
-
-                                <button
-                                        type="submit"
-                                        class="btn btn-success"
-                                >
-                                    Enroll
-                                </button>
-
-                            </form>
-                        {% else %}
-                            <button class="btn btn-secondary" disabled>
-                                Enrollment Unavailable
-                            </button>
-                        {% endif %}
-
+                    <!-- Status -->
+                    {% if not course.is_active %}
+                        <div class="alert alert-warning">
+                            <i class="bi bi-exclamation-triangle"></i>
+                            This course is currently inactive.
+                        </div>
                     {% endif %}
-
-                {% else %}
-
-                    <a
-                            href="{% url 'update_course' course.id %}"
-                            class="btn btn-warning"
-                    >
-                        Edit
-                    </a>
-
-                    <a
-                            href="{% url 'delete_course' course.id %}"
-                            class="btn btn-danger"
-                    >
-                        Delete
-                    </a>
-
-                {% endif %}
-
-            {% else %}
-
-                <a
-                        href="{% url 'login' %}"
-                        class="btn btn-success"
-                >
-                    Login to Enroll
-                </a>
-
-            {% endif %}
-
-            <a
-                    href="{% url 'course_list' %}"
-                    class="btn btn-secondary"
-            >
-                Back to Courses
-            </a>
-
+                </div>
+            </div>
         </div>
 
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="text-center mb-3">Course Actions</h5>
+                    <hr>
+
+                    <div class="d-grid gap-2">
+                        {% if user.is_authenticated %}
+                            {% if user.instructor != course.instructor %}
+                                {% if is_enrolled %}
+                                    <form method="post" action="{% url 'unenroll_course' course.id %}">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-danger w-100">
+                                            <i class="bi bi-x-circle"></i> Unenroll
+                                        </button>
+                                    </form>
+                                {% else %}
+                                    {% if course.is_active and course.enrollments.count < course.capacity or course.capacity == 0 %}
+                                        <form method="post" action="{% url 'enroll_course' course.id %}">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-success w-100">
+                                                <i class="bi bi-plus-circle"></i> Enroll Now
+                                            </button>
+                                        </form>
+                                    {% else %}
+                                        <button class="btn btn-secondary w-100" disabled>
+                                            <i class="bi bi-lock"></i> Enrollment Unavailable
+                                        </button>
+                                    {% endif %}
+                                {% endif %}
+                            {% else %}
+                                <a href="{% url 'update_course' course.id %}" class="btn btn-warning w-100">
+                                    <i class="bi bi-pencil"></i> Edit Course
+                                </a>
+                                <a href="{% url 'delete_course' course.id %}" class="btn btn-danger w-100">
+                                    <i class="bi bi-trash"></i> Delete Course
+                                </a>
+                            {% endif %}
+                        {% else %}
+                            <a href="{% url 'login' %}" class="btn btn-success w-100">
+                                <i class="bi bi-box-arrow-in-right"></i> Login to Enroll
+                            </a>
+                        {% endif %}
+
+                        <a href="{% url 'course_list' %}" class="btn btn-secondary w-100">
+                            <i class="bi bi-arrow-left"></i> Back to Courses
+                        </a>
+                    </div>
+
+                    <!-- Quick Info -->
+                    <hr>
+                    <div class="small text-muted">
+                        <p><i class="bi bi-people"></i> Capacity:
+                            {% if course.capacity > 0 %}
+                                {{ course.enrollments.count }} / {{ course.capacity }}
+                            {% else %}
+                                Unlimited
+                            {% endif %}
+                        </p>
+                        <p><i class="bi bi-clock"></i> Created: {{ course.created_at|date:"M d, Y" }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
+</div>
 
 {% endblock %}
