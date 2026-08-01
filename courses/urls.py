@@ -5,12 +5,9 @@ from . import views
 
 urlpatterns = [
     path("", views.CourseListView.as_view(), name="course_list"),
-
     path("my-courses/", views.MyCoursesView.as_view(), name="my_courses"),
-
     path("create/", views.CourseCreateView.as_view(), name="create_course"),
-
-    path("register/", views.register, name="register"),
+    path("register/", views.RegisterView.as_view(), name="register"),
 
     path("<int:pk>/enroll/", views.EnrollCourseView.as_view(), name="enroll_course"),
     path("<int:pk>/unenroll/", views.UnenrollCourseView.as_view(), name="unenroll_course"),
@@ -21,6 +18,5 @@ urlpatterns = [
 
     path("category/<slug:slug>/", views.CategoryDetailView.as_view(), name="category_detail"),
     path("profile/<str:username>/", views.InstructorProfileView.as_view(), name="instructor_profile"),
-
-    path("profile/edit/", views.edit_profile, name="edit_profile"),
+    path("profile/edit/", views.EditProfileView.as_view(), name="edit_profile"),
 ]
