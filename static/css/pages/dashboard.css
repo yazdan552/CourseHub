@@ -14,106 +14,143 @@
     max-width: 100%;
 }
 
-/* Stat cards animation */
+/* Stat cards */
 .stat-card {
+    background: white;
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    box-shadow: var(--shadow);
     transition: var(--transition);
+    border: 1px solid var(--gray-200);
+    height: 100%;
 }
 
-.stat-card .stat-value {
-    font-size: 2rem;
-    font-weight: 800;
-    background: linear-gradient(135deg, var(--gray-900), var(--gray-600));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+.stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
 }
 
 .stat-card .stat-icon {
-    width: 50px;
-    height: 50px;
+    width: 48px;
+    height: 48px;
     border-radius: var(--radius);
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 1.5rem;
+    margin-bottom: 1rem;
 }
 
-/* Progress ring for dashboard */
-.progress-ring {
-    position: relative;
-    width: 80px;
-    height: 80px;
+.stat-card .stat-icon.primary {
+    background: var(--primary-bg);
+    color: var(--primary);
 }
 
-.progress-ring svg {
-    transform: rotate(-90deg);
+.stat-card .stat-icon.success {
+    background: #dcfce7;
+    color: var(--success);
 }
 
-.progress-ring .progress-ring-circle {
-    fill: none;
-    stroke-width: 6;
-    stroke-linecap: round;
+.stat-card .stat-icon.warning {
+    background: #fef3c7;
+    color: var(--warning);
 }
 
-.progress-ring .progress-ring-bg {
-    stroke: var(--gray-200);
+.stat-card .stat-icon.danger {
+    background: #fee2e2;
+    color: var(--danger);
 }
 
-.progress-ring .progress-ring-fg {
-    stroke: var(--primary);
-    transition: stroke-dashoffset 1s ease;
+.stat-card .stat-value {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--gray-900);
+    line-height: 1.2;
 }
 
-.progress-ring .progress-ring-text {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 700;
-    font-size: 1.1rem;
-}
-
-/* Recent activity timeline */
-.timeline {
-    position: relative;
-    padding-left: 2rem;
-}
-
-.timeline::before {
-    content: '';
-    position: absolute;
-    left: 0.5rem;
-    top: 0;
-    bottom: 0;
-    width: 2px;
-    background: var(--gray-200);
-}
-
-.timeline-item {
-    position: relative;
-    margin-bottom: 1.5rem;
-    padding-left: 1rem;
-}
-
-.timeline-item::before {
-    content: '';
-    position: absolute;
-    left: -1.75rem;
-    top: 0.25rem;
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    background: var(--primary);
-    border: 2px solid white;
-    box-shadow: var(--shadow-sm);
-}
-
-.timeline-item .timeline-time {
-    font-size: 0.75rem;
+.stat-card .stat-label {
     color: var(--gray-500);
+    font-size: 0.875rem;
+    font-weight: 500;
 }
 
-.timeline-item .timeline-content {
-    font-size: 0.9rem;
+.stat-card .stat-change {
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin-top: 0.5rem;
 }
+
+.stat-card .stat-change.positive {
+    color: var(--success);
+}
+
+.stat-card .stat-change.negative {
+    color: var(--danger);
+}
+
+/* ================ NEW: Responsive fixes ================ */
+@media (max-width: 992px) {
+    .stat-card .stat-value {
+        font-size: 1.5rem;
+    }
+
+    .stat-card .stat-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 1.2rem;
+    }
+
+    .chart-container {
+        height: 180px;
+    }
+}
+
+@media (max-width: 768px) {
+    .stat-card {
+        padding: 1rem;
+    }
+
+    .stat-card .stat-value {
+        font-size: 1.25rem;
+    }
+
+    .stat-card .stat-label {
+        font-size: 0.75rem;
+    }
+
+    .stat-card .stat-icon {
+        width: 36px;
+        height: 36px;
+        font-size: 1rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .chart-container {
+        height: 150px;
+    }
+}
+
+@media (max-width: 576px) {
+    .stat-card .stat-value {
+        font-size: 1.1rem;
+    }
+
+    .stat-card .stat-label {
+        font-size: 0.7rem;
+    }
+
+    .stat-card .stat-icon {
+        width: 32px;
+        height: 32px;
+        font-size: 0.9rem;
+    }
+
+    .stat-card .stat-change {
+        font-size: 0.7rem;
+    }
+
+    .chart-container {
+        height: 120px;
+    }
+}
+/* ============================================ */
