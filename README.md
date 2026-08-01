@@ -1,100 +1,76 @@
-\# 🎓 CourseHub
-
-
+# 🎓 CourseHub
 
 A modern online learning platform built with \*\*Django\*\*, inspired by platforms like Udemy. CourseHub enables instructors to create and manage courses while allowing students to discover, enroll, and learn through an intuitive interface.
 
+---
 
+## ✨ Features
 
-\---
+### 👤 Authentication
 
+- User registration and login
 
+- Secure logout
 
-\## ✨ Features
+- Django Authentication System
 
+- User profile management
 
+### 📚 Course Management
 
-\### 👤 Authentication
+- Create, update, delete, and view courses
 
-\- User registration and login
+- Course detail pages
 
-\- Secure logout
+- Category organization
 
-\- Django Authentication System
+- Instructor ownership validation
 
-\- User profile management
+### 🎓 Student Features
 
+- Enroll in courses
 
+- Unenroll from courses
 
-\### 📚 Course Management
+- Capacity validation
 
-\- Create, update, delete, and view courses
+- Personal \*\*My Courses\*\* page
 
-\- Course detail pages
+### 👨‍🏫 Instructor Dashboard
 
-\- Category organization
+- Manage created courses
 
-\- Instructor ownership validation
+- View statistics
 
+- Dashboard charts using Chart.js
 
+### 🔍 Search \& Navigation
 
-\### 🎓 Student Features
+- Search by title
 
-\- Enroll in courses
+- Search by description
 
-\- Unenroll from courses
+- Search by instructor
 
-\- Capacity validation
+- Category filtering
 
-\- Personal \*\*My Courses\*\* page
+- Pagination
 
+### 🎨 User Experience
 
+- Responsive design
 
-\### 👨‍🏫 Instructor Dashboard
+- Dark theme
 
-\- Manage created courses
+- Smooth animations
 
-\- View statistics
+- SEO-friendly pages
 
-\- Dashboard charts using Chart.js
+- Open Graph \& Twitter Cards
 
+---
 
-
-\### 🔍 Search \& Navigation
-
-\- Search by title
-
-\- Search by description
-
-\- Search by instructor
-
-\- Category filtering
-
-\- Pagination
-
-
-
-\### 🎨 User Experience
-
-\- Responsive design
-
-\- Dark theme
-
-\- Smooth animations
-
-\- SEO-friendly pages
-
-\- Open Graph \& Twitter Cards
-
-
-
-\---
-
-
-
-\## 🛠 Tech Stack
-
-
+## 🛠 Tech Stack
 
 | Technology | Purpose |
 
@@ -112,15 +88,9 @@ A modern online learning platform built with \*\*Django\*\*, inspired by platfor
 
 | Django Templates | Server-side Rendering |
 
+---
 
-
-\---
-
-
-
-\## 📂 Project Structure
-
-
+## 📂 Project Structure
 
 ```text
 
@@ -156,19 +126,11 @@ CourseHub/
 
 ```
 
+---
 
+## 🚀 Getting Started
 
-\---
-
-
-
-\## 🚀 Getting Started
-
-
-
-\### 1. Clone the repository
-
-
+### 1. Clone the repository
 
 ```bash
 
@@ -178,15 +140,9 @@ cd CourseHub
 
 ```
 
-
-
-\### 2. Create a virtual environment
-
-
+### 2. Create a virtual environment
 
 \*\*Linux / macOS\*\*
-
-
 
 ```bash
 
@@ -196,11 +152,7 @@ source .venv/bin/activate
 
 ```
 
-
-
 \*\*Windows\*\*
-
-
 
 ```powershell
 
@@ -210,11 +162,7 @@ python -m venv .venv
 
 ```
 
-
-
-\### 3. Install dependencies
-
-
+### 3. Install dependencies
 
 ```bash
 
@@ -222,11 +170,7 @@ pip install -r requirements.txt
 
 ```
 
-
-
-\### 4. Create a `.env` file
-
-
+### 4. Create a `.env` file
 
 ```env
 
@@ -236,11 +180,7 @@ DEBUG=True
 
 ```
 
-
-
-\### 5. Apply migrations
-
-
+### 5. Apply migrations
 
 ```bash
 
@@ -248,11 +188,7 @@ python manage.py migrate
 
 ```
 
-
-
-\### 6. Create a superuser
-
-
+### 6. Create a superuser
 
 ```bash
 
@@ -260,11 +196,7 @@ python manage.py createsuperuser
 
 ```
 
-
-
-\### 7. Run the development server
-
-
+### 7. Run the development server
 
 ```bash
 
@@ -272,11 +204,7 @@ python manage.py runserver
 
 ```
 
-
-
 Open your browser and visit:
-
-
 
 ```
 
@@ -284,101 +212,75 @@ http://127.0.0.1:8000
 
 ```
 
+---
 
+## 👥 User Roles
 
-\---
+### Student
 
+- Register an account
 
+- Browse available courses
 
-\## 👥 User Roles
+- Search courses
 
+- Enroll and unenroll
 
+- View enrolled courses
 
-\### Student
+### Instructor
 
-\- Register an account
+- Create courses
 
-\- Browse available courses
+- Edit existing courses
 
-\- Search courses
+- Delete courses
 
-\- Enroll and unenroll
+- Monitor statistics through the dashboard
 
-\- View enrolled courses
+### Administrator
 
+- Access Django Admin
 
+- Manage users
 
-\### Instructor
+- Manage courses
 
-\- Create courses
+- Manage categories
 
-\- Edit existing courses
+---
 
-\- Delete courses
+## 📌 Future Improvements
 
-\- Monitor statistics through the dashboard
+- Course lessons
 
+- Video streaming
 
+- Quiz system
 
-\### Administrator
+- Certificates
 
-\- Access Django Admin
+- Payment integration
 
-\- Manage users
+- Course ratings and reviews
 
-\- Manage courses
+- Wishlist
 
-\- Manage categories
+- Email notifications
 
+- REST API
 
+- Docker support
 
-\---
+---
 
-
-
-\## 📌 Future Improvements
-
-
-
-\- Course lessons
-
-\- Video streaming
-
-\- Quiz system
-
-\- Certificates
-
-\- Payment integration
-
-\- Course ratings and reviews
-
-\- Wishlist
-
-\- Email notifications
-
-\- REST API
-
-\- Docker support
-
-
-
-\---
-
-
-
-\## 🤝 Contributing
-
-
+## 🤝 Contributing
 
 Contributions are welcome.
-
-
 
 1\. Fork the repository.
 
 2\. Create a feature branch.
-
-
 
 ```bash
 
@@ -386,11 +288,7 @@ git checkout -b feature/your-feature
 
 ```
 
-
-
 3\. Commit your changes.
-
-
 
 ```bash
 
@@ -398,11 +296,7 @@ git commit -m "Add your feature"
 
 ```
 
-
-
 4\. Push your branch.
-
-
 
 ```bash
 
@@ -410,47 +304,24 @@ git push origin feature/your-feature
 
 ```
 
-
-
 5\. Open a Pull Request.
 
+---
 
-
-\---
-
-
-
-\## 📄 License
-
-
+## 📄 License
 
 This project is licensed under the \*\*MIT License\*\*.
 
+---
 
-
-\---
-
-
-
-\## 👨‍💻 Author
-
-
+## 👨‍💻 Author
 
 \*\*Yazdan\*\*
 
-
-
 GitHub: \*\*@yazdan552\*\*
 
+---
 
-
-\---
-
-
-
-\## ⭐ Support
-
-
+## ⭐ Support
 
 If you find this project useful, consider giving it a ⭐ on GitHub.
-
