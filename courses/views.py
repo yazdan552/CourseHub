@@ -1,3 +1,7 @@
+from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.urls import reverse_lazy
+
 from django.contrib.auth.decorators import login_required
 from django.db.models import Count, Q
 from django.http import HttpResponseForbidden
@@ -8,100 +12,180 @@ from django.contrib import messages
 from django.contrib.auth.models import User
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
-
 from .forms import CourseForm, RegisterForm, InstructorProfileForm
 from .models import Course, Instructor, Enrollment, Category
 
 
 # Create your views here.
 
-
-def course_list(request):
+class CourseListView(ListView):
     """
-    نمایش لیست تمام دوره‌ها
+    نمایش لیست دوره‌ها با قابلیت جستجو، فیلتر و صفحه‌بندی
     """
-    search_query = request.GET.get('q', '').strip()
-    min_price = request.GET.get('min_price', '')
-    max_price = request.GET.get('max_price', '')
-    sort_by = request.GET.get('sort', 'newest')
-    category_slug = request.GET.get('category', '')
-    page_number = request.GET.get('page', 1)
+    model = Course
+    template_name = 'courses/course_list.html'
+    context_object_name = 'courses'
+    paginate_by = 6
 
-    courses = Course.objects.select_related('instructor').annotate(
-        students_count=Count('enrollments')
-    ).filter(is_active=True)
+    def get_queryset(self):
+        """
+        سفارشی‌سازی کوئری با فیلترها و جستجو
+        """
+        queryset = Course.objects.select_related('instructor').annotate(
+            students_count=Count('enrollments')
+        ).filter(is_active=True)
 
-    if category_slug:
-        courses = courses.filter(categories__slug=category_slug)
+        search_query = self.request.GET.get('q', '').strip()
+        min_price = self.request.GET.get('min_price', '')
+        max_price = self.request.GET.get('max_price', '')
+        sort_by = self.request.GET.get('sort', 'newest')
+        category_slug = self.request.GET.get('category', '')
 
-    # جست و جو
-    if search_query:
-        courses = courses.filter(
-            Q(title__icontains=search_query) |  # جستجو در عنوان
-            Q(description__icontains=search_query) |  # جستجو در توضیحات
-            Q(instructor__user__username__icontains=search_query)  # جستجو در نام مدرس
+        if category_slug:
+            queryset = queryset.filter(categories__slug=category_slug)
+
+        # جستجو
+        if search_query:
+            queryset = queryset.filter(
+                Q(title__icontains=search_query) |
+                Q(description__icontains=search_query) |
+                Q(instructor__user__username__icontains=search_query)
+            )
+
+        # فیلتر قیمت
+        if min_price:
+            try:
+                min_price = int(min_price)
+                queryset = queryset.filter(price__gte=min_price)
+            except ValueError:
+                pass
+
+        if max_price:
+            try:
+                max_price = int(max_price)
+                queryset = queryset.filter(price__lte=max_price)
+            except ValueError:
+                pass
+
+        # مرتب‌سازی
+        sort_map = {
+            'price_asc': 'price',
+            'price_desc': '-price',
+            'popular': '-students_count',
+            'newest': '-created_at'
+        }
+        queryset = queryset.order_by(sort_map.get(sort_by, '-created_at'))
+
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        """
+        اضافه کردن داده‌های اضافی به context
+        """
+        context = super().get_context_data(**kwargs)
+
+        context['search_query'] = self.request.GET.get('q', '').strip()
+        context['min_price'] = self.request.GET.get('min_price', '')
+        context['max_price'] = self.request.GET.get('max_price', '')
+        context['sort_by'] = self.request.GET.get('sort', 'newest')
+        context['category_slug'] = self.request.GET.get('category', '')
+
+        # دریافت دسته‌بندی‌ها برای سایدبار
+        context['categories'] = Category.objects.all().annotate(
+            course_count=Count('courses', filter=Q(courses__is_active=True))
         )
 
-    # قیمت
-    if min_price:
-        try:
-            min_price = int(min_price)
-            courses = courses.filter(price__gte=min_price)
-        except ValueError:
-            min_price = ''
+        context['total_results'] = self.get_queryset().count()
 
-    if max_price:
-        try:
-            max_price = int(max_price)
-            courses = courses.filter(price__lte=max_price)
-        except ValueError:
-            max_price = ''
-
-    # مرتب‌سازی
-    if sort_by == 'price_asc':
-        courses = courses.order_by('price')  # قیمت از کم به زیاد
-    elif sort_by == 'price_desc':
-        courses = courses.order_by('-price')  # قیمت از زیاد به کم
-    elif sort_by == 'popular':
-        courses = courses.order_by('-students_count')  # بیشترین دانشجو
-    elif sort_by == 'newest':
-        courses = courses.order_by('-created_at')  # جدیدترین
-    else:
-        courses = courses.order_by('-created_at')  # پیش‌فرض
-
-    # دریافت همه دسته‌بندی‌ها برای نمایش در سایدبار
-    categories = Category.objects.all().annotate(course_count=Count('courses', filter=Q(courses__is_active=True)))
-
-    #Paginator
-    paginator = Paginator(courses, 6)
-
-    try:
-        page_obj = paginator.page(page_number)
-    except PageNotAnInteger:
-        page_obj = paginator.page(1)
-    except EmptyPage:
-        page_obj = paginator.page(paginator.num_pages)
+        return context
 
 
-
-    # ================ تعداد نتایج ================
-    total_results = courses.count()
-
-    return render(
-        request,
-        "courses/course_list.html",
-        {
-            "courses": page_obj,
-            "page_obj": page_obj,
-            "search_query": search_query,
-            "min_price": min_price,
-            "max_price": max_price,
-            "sort_by": sort_by,
-            "category_slug": category_slug,
-            "categories": categories,
-            "total_results": total_results,
-        },
-    )
+# def course_list(request):
+#     """
+#     نمایش لیست تمام دوره‌ها
+#     """
+#     search_query = request.GET.get('q', '').strip()
+#     min_price = request.GET.get('min_price', '')
+#     max_price = request.GET.get('max_price', '')
+#     sort_by = request.GET.get('sort', 'newest')
+#     category_slug = request.GET.get('category', '')
+#     page_number = request.GET.get('page', 1)
+#
+#     courses = Course.objects.select_related('instructor').annotate(
+#         students_count=Count('enrollments')
+#     ).filter(is_active=True)
+#
+#     if category_slug:
+#         courses = courses.filter(categories__slug=category_slug)
+#
+#     # جست و جو
+#     if search_query:
+#         courses = courses.filter(
+#             Q(title__icontains=search_query) |  # جستجو در عنوان
+#             Q(description__icontains=search_query) |  # جستجو در توضیحات
+#             Q(instructor__user__username__icontains=search_query)  # جستجو در نام مدرس
+#         )
+#
+#     # قیمت
+#     if min_price:
+#         try:
+#             min_price = int(min_price)
+#             courses = courses.filter(price__gte=min_price)
+#         except ValueError:
+#             min_price = ''
+#
+#     if max_price:
+#         try:
+#             max_price = int(max_price)
+#             courses = courses.filter(price__lte=max_price)
+#         except ValueError:
+#             max_price = ''
+#
+#     # مرتب‌سازی
+#     if sort_by == 'price_asc':
+#         courses = courses.order_by('price')  # قیمت از کم به زیاد
+#     elif sort_by == 'price_desc':
+#         courses = courses.order_by('-price')  # قیمت از زیاد به کم
+#     elif sort_by == 'popular':
+#         courses = courses.order_by('-students_count')  # بیشترین دانشجو
+#     elif sort_by == 'newest':
+#         courses = courses.order_by('-created_at')  # جدیدترین
+#     else:
+#         courses = courses.order_by('-created_at')  # پیش‌فرض
+#
+#     # دریافت همه دسته‌بندی‌ها برای نمایش در سایدبار
+#     categories = Category.objects.all().annotate(course_count=Count('courses', filter=Q(courses__is_active=True)))
+#
+#     #Paginator
+#     paginator = Paginator(courses, 6)
+#
+#     try:
+#         page_obj = paginator.page(page_number)
+#     except PageNotAnInteger:
+#         page_obj = paginator.page(1)
+#     except EmptyPage:
+#         page_obj = paginator.page(paginator.num_pages)
+#
+#
+#
+#     # ================ تعداد نتایج ================
+#     total_results = courses.count()
+#
+#     return render(
+#         request,
+#         "courses/course_list.html",
+#         {
+#             "courses": page_obj,
+#             "page_obj": page_obj,
+#             "search_query": search_query,
+#             "min_price": min_price,
+#             "max_price": max_price,
+#             "sort_by": sort_by,
+#             "category_slug": category_slug,
+#             "categories": categories,
+#             "total_results": total_results,
+#         },
+#     )
 
 
 def category_detail(request, slug):
@@ -109,7 +193,6 @@ def category_detail(request, slug):
     نمایش صفحه اختصاصی یک دسته‌بندی با تمام دوره‌های آن
     """
     page_number = request.GET.get('page', 1)
-
 
     category = get_object_or_404(
         Category.objects.prefetch_related('courses__instructor'),
@@ -129,7 +212,7 @@ def category_detail(request, slug):
 
     total_results = courses.count()
 
-    #paginator
+    # paginator
     paginator = Paginator(courses, 6)
 
     try:
@@ -151,6 +234,7 @@ def category_detail(request, slug):
         }
     )
 
+
 @login_required
 def my_courses(request):
     """
@@ -158,8 +242,6 @@ def my_courses(request):
     تفکیک دوره‌های در حال پیشرفت و تکمیل شده
     """
     page_number = request.GET.get('page', 1)
-
-
 
     # دوره‌های در حال پیشرفت
     enrollments = request.user.enrollments.select_related(
@@ -198,32 +280,64 @@ def my_courses(request):
     )
 
 
-def course_detail(request, course_id):
+class CourseDetailView(DetailView):
     """
     نمایش جزئیات یک دوره
-    بررسی اینکه کاربر قبلاً ثبت‌نام کرده یا نه
     """
-    course = get_object_or_404(
-        Course.objects.select_related('instructor').prefetch_related('enrollments'),
-        id=course_id,
-    )
+    model = Course
+    template_name = 'courses/course_detail.html'
+    context_object_name = 'course'
 
-    is_enrolled = False
+    def get_queryset(self):
+        """
+        بهینه‌سازی کوئری با select_related و prefetch_related
+        """
+        return Course.objects.select_related('instructor').prefetch_related('enrollments')
 
-    if request.user.is_authenticated:
-        is_enrolled = Enrollment.objects.filter(
-            user=request.user,
-            course=course,
-        ).exists()
+    def get_context_data(self, **kwargs):
+        """
+        اضافه کردن اطلاعات ثبت‌نام کاربر
+        """
+        context = super().get_context_data(**kwargs)
+        course = self.get_object()
 
-    return render(
-        request,
-        "courses/course_detail.html",
-        {
-            "course": course,
-            "is_enrolled": is_enrolled,
-        },
-    )
+        if self.request.user.is_authenticated:
+            context['is_enrolled'] = Enrollment.objects.filter(
+                user=self.request.user,
+                course=course
+            ).exists()
+        else:
+            context['is_enrolled'] = False
+
+        return context
+
+
+# def course_detail(request, course_id):
+#     """
+#     نمایش جزئیات یک دوره
+#     بررسی اینکه کاربر قبلاً ثبت‌نام کرده یا نه
+#     """
+#     course = get_object_or_404(
+#         Course.objects.select_related('instructor').prefetch_related('enrollments'),
+#         id=course_id,
+#     )
+#
+#     is_enrolled = False
+#
+#     if request.user.is_authenticated:
+#         is_enrolled = Enrollment.objects.filter(
+#             user=request.user,
+#             course=course,
+#         ).exists()
+#
+#     return render(
+#         request,
+#         "courses/course_detail.html",
+#         {
+#             "course": course,
+#             "is_enrolled": is_enrolled,
+#         },
+#     )
 
 
 @login_required
@@ -321,135 +435,214 @@ def unenroll_course(request, course_id):
     )
 
 
-@staff_member_required
-def create_course(request):
+class CourseCreateView(LoginRequiredMixin, CreateView):
     """
-    ایجاد دوره جدید توسط مدرس
+    ایجاد دوره جدید
     """
-    if request.method == "POST":
+    model = Course
+    form_class = CourseForm
+    template_name = 'courses/course_form.html'
+    success_url = reverse_lazy('course_list')
 
-        form = CourseForm(request.POST)
-
-        if form.is_valid():
-            course = form.save(
-                commit=False,
+    def form_valid(self, form):
+        """
+        تنظیم instructor قبل از ذخیره
+        """
+        # بررسی وجود Instructor
+        if not hasattr(self.request.user, 'instructor'):
+            Instructor.objects.create(
+                user=self.request.user,
+                phone="",
+                bio=""
             )
 
-            course.instructor = request.user.instructor
+        form.instance.instructor = self.request.user.instructor
+        return super().form_valid(form)
 
-            course.save()
-
-            form.save_m2m()
-
-            messages.success(
-                request,
-                "Course created successfully.",
-            )
-
-            return redirect("course_list")
-
-    else:
-        form = CourseForm()
-
-    return render(
-        request,
-        "courses/course_form.html",
-        {
-            "form": form,
-        },
-    )
+    def get_context_data(self, **kwargs):
+        """
+        اضافه کردن عنوان مناسب
+        """
+        context = super().get_context_data(**kwargs)
+        context['is_create'] = True
+        return context
 
 
-@staff_member_required
-def update_course(request, course_id):
+# @staff_member_required
+# def create_course(request):
+#     """
+#     ایجاد دوره جدید توسط مدرس
+#     """
+#     if request.method == "POST":
+#
+#         form = CourseForm(request.POST)
+#
+#         if form.is_valid():
+#             course = form.save(
+#                 commit=False,
+#             )
+#
+#             course.instructor = request.user.instructor
+#
+#             course.save()
+#
+#             form.save_m2m()
+#
+#             messages.success(
+#                 request,
+#                 "Course created successfully.",
+#             )
+#
+#             return redirect("course_list")
+#
+#     else:
+#         form = CourseForm()
+#
+#     return render(
+#         request,
+#         "courses/course_form.html",
+#         {
+#             "form": form,
+#         },
+#     )
+
+
+class CourseUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     """
     ویرایش دوره (فقط مدرس دوره)
     """
-    # اطمینان از وجود Instructor
-    if not hasattr(request.user, 'instructor'):
-        Instructor.objects.create(
-            user=request.user,
-            phone="",
-            bio=""
-        )
+    model = Course
+    form_class = CourseForm
+    template_name = 'courses/course_form.html'
+    success_url = reverse_lazy('course_list')
 
-    course = get_object_or_404(
-        Course,
-        id=course_id,
-    )
-    if course.instructor != request.user.instructor:
-        return HttpResponseForbidden(
-            "You are not allowed to edit this course."
-        )
+    def test_func(self):
+        """
+        بررسی اینکه کاربر مدرس این دوره است
+        """
+        course = self.get_object()
+        return self.request.user == course.instructor.user
 
-    if request.method == "POST":
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['is_create'] = False
+        return context
 
-        form = CourseForm(
-            request.POST,
-            instance=course,
-        )
-
-        if form.is_valid():
-            form.save()
-            form.save_m2m()
-
-            messages.success(
-                request,
-                "Course updated successfully.",
-            )
-
-            return redirect(
-                "course_detail",
-                course.id,
-            )
-
-    else:
-
-        form = CourseForm(
-            instance=course,
-        )
-
-    return render(
-        request,
-        "courses/course_form.html",
-        {
-            "form": form,
-        },
-    )
+    def get_success_url(self):
+        """
+        بعد از ویرایش به صفحه جزئیات دوره برویم
+        """
+        return reverse_lazy('course_detail', kwargs={'pk': self.object.pk})
 
 
-@staff_member_required
-def delete_course(request, course_id):
+
+# @staff_member_required
+# def update_course(request, course_id):
+#     """
+#     ویرایش دوره (فقط مدرس دوره)
+#     """
+#     # اطمینان از وجود Instructor
+#     if not hasattr(request.user, 'instructor'):
+#         Instructor.objects.create(
+#             user=request.user,
+#             phone="",
+#             bio=""
+#         )
+#
+#     course = get_object_or_404(
+#         Course,
+#         id=course_id,
+#     )
+#     if course.instructor != request.user.instructor:
+#         return HttpResponseForbidden(
+#             "You are not allowed to edit this course."
+#         )
+#
+#     if request.method == "POST":
+#
+#         form = CourseForm(
+#             request.POST,
+#             instance=course,
+#         )
+#
+#         if form.is_valid():
+#             form.save()
+#             form.save_m2m()
+#
+#             messages.success(
+#                 request,
+#                 "Course updated successfully.",
+#             )
+#
+#             return redirect(
+#                 "course_detail",
+#                 course.id,
+#             )
+#
+#     else:
+#
+#         form = CourseForm(
+#             instance=course,
+#         )
+#
+#     return render(
+#         request,
+#         "courses/course_form.html",
+#         {
+#             "form": form,
+#         },
+#     )
+
+
+class CourseDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     """
     حذف دوره (فقط مدرس دوره)
     """
-    course = get_object_or_404(
-        Course,
-        id=course_id,
-    )
+    model = Course
+    template_name = 'courses/course_confirm_delete.html'
+    success_url = reverse_lazy('course_list')
 
-    if course.instructor != request.user.instructor:
-        return HttpResponseForbidden(
-            "You are not allowed to delete this course."
-        )
+    def test_func(self):
+        """
+        بررسی اینکه کاربر مدرس این دوره است
+        """
+        course = self.get_object()
+        return self.request.user == course.instructor.user
 
-    if request.method == "POST":
-        course.delete()
 
-        messages.success(
-            request,
-            "Course deleted successfully.",
-        )
 
-        return redirect("course_list")
-
-    return render(
-        request,
-        "courses/course_confirm_delete.html",
-        {
-            "course": course,
-        },
-    )
+# @staff_member_required
+# def delete_course(request, course_id):
+#     """
+#     حذف دوره (فقط مدرس دوره)
+#     """
+#     course = get_object_or_404(
+#         Course,
+#         id=course_id,
+#     )
+#
+#     if course.instructor != request.user.instructor:
+#         return HttpResponseForbidden(
+#             "You are not allowed to delete this course."
+#         )
+#
+#     if request.method == "POST":
+#         course.delete()
+#
+#         messages.success(
+#             request,
+#             "Course deleted successfully.",
+#         )
+#
+#         return redirect("course_list")
+#
+#     return render(
+#         request,
+#         "courses/course_confirm_delete.html",
+#         {
+#             "course": course,
+#         },
+#     )
 
 
 def register(request):
@@ -496,8 +689,6 @@ def instructor_profile(request, username):
     نمایش پروفایل عمومی یک مدرس
     """
     page_number = request.GET.get('page', 1)
-
-
 
     user = get_object_or_404(
         User.objects.select_related('instructor'),
