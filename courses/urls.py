@@ -19,4 +19,6 @@ urlpatterns = [
     path("category/<slug:slug>/", views.CategoryDetailView.as_view(), name="category_detail"),
     path("profile/<str:username>/", views.InstructorProfileView.as_view(), name="instructor_profile"),
     path("profile/edit/", views.EditProfileView.as_view(), name="edit_profile"),
+    path("dashboard/", views.DashboardView.as_view(), name="dashboard"),
+
 ]

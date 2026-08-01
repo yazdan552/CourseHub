@@ -1,6 +1,6 @@
 # courses/views.py
 
-from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
+from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView , TemplateView
 from django.views import View
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.views import LoginView
@@ -9,11 +9,15 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib import messages
 from django.contrib.auth import login
 from django.contrib.auth.models import User
-from django.db.models import Count, Q
+from django.db.models import Count, Q , Sum
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 from .forms import CourseForm, RegisterForm, InstructorProfileForm
 from .models import Course, Instructor, Enrollment, Category
+
+from django.utils import timezone
+from datetime import timedelta
+from django.db.models.functions import TruncMonth, TruncWeek
 
 
 # ================ Mixin‌ها ================
@@ -335,3 +339,153 @@ class EditProfileView(LoginRequiredMixin, UpdateView):
             messages.error(request, "You don't have permission to access this page.")
             return redirect('course_list')
         return super().dispatch(request, *args, **kwargs)
+
+
+class DashboardView(LoginRequiredMixin, TemplateView):
+    """
+    داشبورد مدیریتی برای مدرس
+    نمایش آمار دوره‌ها، دانشجویان، درآمد و فعالیت‌ها
+    """
+    template_name = 'courses/dashboard.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        # ================ اطلاعات مدرس ================
+        user = self.request.user
+
+        # اگر کاربر مدرس نیست
+        if not hasattr(user, 'instructor'):
+            context['error'] = "You are not an instructor."
+            return context
+
+        instructor = user.instructor
+
+        # ================ آمار دوره‌ها ================
+        courses = instructor.courses.all()
+        total_courses = courses.count()
+        active_courses = courses.filter(is_active=True).count()
+        inactive_courses = courses.filter(is_active=False).count()
+
+        # ================ آمار دانشجویان ================
+        total_students = Enrollment.objects.filter(
+            course__in=courses
+        ).values('user').distinct().count()
+
+        total_enrollments = Enrollment.objects.filter(
+            course__in=courses
+        ).count()
+
+        # ================ آمار درآمد ================
+        total_revenue = Enrollment.objects.filter(
+            course__in=courses
+        ).aggregate(
+            total=Sum('course__price')
+        )['total'] or 0
+
+        # ================ دوره‌های پرفروش (دانشجو) ================
+        top_courses = courses.annotate(
+            student_count=Count('enrollments')
+        ).order_by('-student_count')[:5]
+
+        # ================ دوره‌های پرفروش (درآمد) ================
+        top_revenue_courses = courses.annotate(
+            revenue=Sum('enrollments__course__price')
+        ).order_by('-revenue')[:5]
+
+        # ================ آخرین ثبت‌نام‌ها ================
+        recent_enrollments = Enrollment.objects.filter(
+            course__in=courses
+        ).select_related('user', 'course').order_by('-enrolled_at')[:10]
+
+        # ================ آمار دسته‌بندی‌ها ================
+        category_stats = Category.objects.filter(
+            courses__in=courses
+        ).annotate(
+            course_count=Count('courses', filter=Q(courses__in=courses))
+        ).order_by('-course_count')
+
+        # ================ دوره‌های اخیر ================
+        recent_courses = courses.order_by('-created_at')[:5]
+
+        # ================ آمار پیشرفت ================
+        completed_enrollments = Enrollment.objects.filter(
+            course__in=courses,
+            is_completed=True
+        ).count()
+
+        in_progress_enrollments = total_enrollments - completed_enrollments
+
+        # ================ NEW: آمار ماهانه ================
+        six_months_ago = timezone.now() - timedelta(days=180)
+
+        monthly_enrollments = Enrollment.objects.filter(
+            course__in=courses,
+            enrolled_at__gte=six_months_ago
+        ).annotate(
+            month=TruncMonth('enrolled_at')
+        ).values('month').annotate(
+            count=Count('id')
+        ).order_by('month')
+
+        monthly_revenue = Enrollment.objects.filter(
+            course__in=courses,
+            enrolled_at__gte=six_months_ago
+        ).annotate(
+            month=TruncMonth('enrolled_at')
+        ).values('month').annotate(
+            total=Sum('course__price')
+        ).order_by('month')
+
+        # ================ داده‌های نمودار ================
+        chart_labels = []
+        chart_data = []
+        chart_revenue = []
+
+        for item in monthly_enrollments:
+            chart_labels.append(item['month'].strftime('%B %Y'))
+            chart_data.append(item['count'])
+
+        for item in monthly_revenue:
+            chart_revenue.append(float(item['total']))
+
+        # ================ درصد دوره‌های فعال ================
+        active_percentage = int((active_courses / total_courses * 100)) if total_courses > 0 else 0
+
+        # ================ ساخت context ================
+        context.update({
+            # اطلاعات پایه
+            'instructor': instructor,
+            'total_courses': total_courses,
+            'active_courses': active_courses,
+            'inactive_courses': inactive_courses,
+
+            # آمار دانشجویان
+            'total_students': total_students,
+            'total_enrollments': total_enrollments,
+
+            # آمار درآمد
+            'total_revenue': total_revenue,
+
+            # لیست‌ها
+            'top_courses': top_courses,
+            'top_revenue_courses': top_revenue_courses,
+            'recent_enrollments': recent_enrollments,
+            'category_stats': category_stats,
+            'recent_courses': recent_courses,
+
+            # درصد دوره‌های فعال
+            'active_percentage': active_percentage,
+
+            # آمار پیشرفت
+            'completed_enrollments': completed_enrollments,
+            'in_progress_enrollments': in_progress_enrollments,
+
+            # داده‌های نمودار
+            'chart_labels': chart_labels,
+            'chart_data': chart_data,
+            'chart_revenue': chart_revenue,
+            'has_chart_data': bool(chart_labels),
+        })
+
+        return context
