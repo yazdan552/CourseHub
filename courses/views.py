@@ -1,4 +1,6 @@
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
+from django.views import View
+from django.shortcuts import redirect
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.urls import reverse_lazy
 
@@ -188,96 +190,172 @@ class CourseListView(ListView):
 #     )
 
 
-def category_detail(request, slug):
+class CategoryDetailView(ListView):
     """
     نمایش صفحه اختصاصی یک دسته‌بندی با تمام دوره‌های آن
     """
-    page_number = request.GET.get('page', 1)
+    template_name = 'courses/category_detail.html'
+    context_object_name = 'courses'
+    paginate_by = 6
 
-    category = get_object_or_404(
-        Category.objects.prefetch_related('courses__instructor'),
-        slug=slug
-    )
+    def get_queryset(self):
+        """
+        دریافت دوره‌های یک دسته‌بندی خاص
+        """
+        self.category = get_object_or_404(
+            Category.objects.prefetch_related('courses__instructor'),
+            slug=self.kwargs['slug']
+        )
 
-    courses = category.courses.filter(
-        is_active=True
-    ).select_related('instructor').annotate(
-        students_count=Count('enrollments')
-    ).order_by('-created_at')
+        return self.category.courses.filter(
+            is_active=True
+        ).select_related('instructor').annotate(
+            students_count=Count('enrollments')
+        ).order_by('-created_at')
 
-    # دریافت همه دسته‌بندی‌ها برای سایدبار
-    categories = Category.objects.all().annotate(
-        course_count=Count('courses', filter=Q(courses__is_active=True))
-    )
+    def get_context_data(self, **kwargs):
+        """
+        اضافه کردن اطلاعات دسته‌بندی و لیست همه دسته‌بندی‌ها
+        """
+        context = super().get_context_data(**kwargs)
 
-    total_results = courses.count()
+        # اطلاعات دسته‌بندی فعلی
+        context['category'] = self.category
 
-    # paginator
-    paginator = Paginator(courses, 6)
+        # همه دسته‌بندی‌ها برای سایدبار
+        context['categories'] = Category.objects.all().annotate(
+            course_count=Count('courses', filter=Q(courses__is_active=True))
+        )
 
-    try:
-        page_obj = paginator.page(page_number)
-    except PageNotAnInteger:
-        page_obj = paginator.page(1)
-    except EmptyPage:
-        page_obj = paginator.page(paginator.num_pages)
+        # تعداد کل دوره‌های این دسته‌بندی
+        context['total_results'] = self.get_queryset().count()
 
-    return render(
-        request,
-        "courses/category_detail.html",
-        {
-            "category": category,
-            "courses": page_obj,
-            "page_obj": page_obj,
-            "categories": categories,
-            "total_results": total_results,
-        }
-    )
+        return context
 
 
-@login_required
-def my_courses(request):
+# def category_detail(request, slug):
+#     """
+#     نمایش صفحه اختصاصی یک دسته‌بندی با تمام دوره‌های آن
+#     """
+#     page_number = request.GET.get('page', 1)
+#
+#     category = get_object_or_404(
+#         Category.objects.prefetch_related('courses__instructor'),
+#         slug=slug
+#     )
+#
+#     courses = category.courses.filter(
+#         is_active=True
+#     ).select_related('instructor').annotate(
+#         students_count=Count('enrollments')
+#     ).order_by('-created_at')
+#
+#     # دریافت همه دسته‌بندی‌ها برای سایدبار
+#     categories = Category.objects.all().annotate(
+#         course_count=Count('courses', filter=Q(courses__is_active=True))
+#     )
+#
+#     total_results = courses.count()
+#
+#     # paginator
+#     paginator = Paginator(courses, 6)
+#
+#     try:
+#         page_obj = paginator.page(page_number)
+#     except PageNotAnInteger:
+#         page_obj = paginator.page(1)
+#     except EmptyPage:
+#         page_obj = paginator.page(paginator.num_pages)
+#
+#     return render(
+#         request,
+#         "courses/category_detail.html",
+#         {
+#             "category": category,
+#             "courses": page_obj,
+#             "page_obj": page_obj,
+#             "categories": categories,
+#             "total_results": total_results,
+#         }
+#     )
+
+
+class MyCoursesView(LoginRequiredMixin, ListView):
     """
     نمایش دوره‌هایی که کاربر در آنها ثبت‌نام کرده
     تفکیک دوره‌های در حال پیشرفت و تکمیل شده
     """
-    page_number = request.GET.get('page', 1)
+    template_name = 'courses/my_courses.html'
+    context_object_name = 'enrollments'
+    paginate_by = 6
 
-    # دوره‌های در حال پیشرفت
-    enrollments = request.user.enrollments.select_related(
-        'course__instructor'
-    ).filter(
-        is_completed=False
-    )
+    def get_queryset(self):
+        """
+        دریافت دوره‌های در حال پیشرفت کاربر
+        """
+        return self.request.user.enrollments.select_related(
+            'course__instructor'
+        ).filter(is_completed=False)
 
-    # دوره‌های تکمیل شده
-    completed_courses = request.user.enrollments.select_related(
-        'course__instructor'
-    ).filter(
-        is_completed=True
-    )
+    def get_context_data(self, **kwargs):
+        """
+        اضافه کردن دوره‌های تکمیل شده و تعداد کل
+        """
+        context = super().get_context_data(**kwargs)
 
-    total_enrollments = enrollments.count()
+        # دوره‌های تکمیل شده (بدون صفحه‌بندی)
+        context['completed_courses'] = self.request.user.enrollments.select_related(
+            'course__instructor'
+        ).filter(is_completed=True)
 
-    paginator = Paginator(enrollments, 6)
+        # تعداد کل دوره‌های در حال پیشرفت
+        context['total_enrollments'] = self.get_queryset().count()
 
-    try:
-        page_obj = paginator.page(page_number)
-    except PageNotAnInteger:
-        page_obj = paginator.page(1)
-    except EmptyPage:
-        page_obj = paginator.page(paginator.num_pages)
+        return context
 
-    return render(
-        request,
-        "courses/my_courses.html",
-        {
-            "enrollments": page_obj,
-            "page_obj": page_obj,
-            "completed_courses": completed_courses,
-            "total_enrollments": total_enrollments,
-        }
-    )
+# @login_required
+# def my_courses(request):
+#     """
+#     نمایش دوره‌هایی که کاربر در آنها ثبت‌نام کرده
+#     تفکیک دوره‌های در حال پیشرفت و تکمیل شده
+#     """
+#     page_number = request.GET.get('page', 1)
+#
+#     # دوره‌های در حال پیشرفت
+#     enrollments = request.user.enrollments.select_related(
+#         'course__instructor'
+#     ).filter(
+#         is_completed=False
+#     )
+#
+#     # دوره‌های تکمیل شده
+#     completed_courses = request.user.enrollments.select_related(
+#         'course__instructor'
+#     ).filter(
+#         is_completed=True
+#     )
+#
+#     total_enrollments = enrollments.count()
+#
+#     paginator = Paginator(enrollments, 6)
+#
+#     try:
+#         page_obj = paginator.page(page_number)
+#     except PageNotAnInteger:
+#         page_obj = paginator.page(1)
+#     except EmptyPage:
+#         page_obj = paginator.page(paginator.num_pages)
+#
+#     return render(
+#         request,
+#         "courses/my_courses.html",
+#         {
+#             "enrollments": page_obj,
+#             "page_obj": page_obj,
+#             "completed_courses": completed_courses,
+#             "total_enrollments": total_enrollments,
+#         }
+#     )
 
 
 class CourseDetailView(DetailView):
@@ -340,48 +418,41 @@ class CourseDetailView(DetailView):
 #     )
 
 
-@login_required
-def enroll_course(request, course_id):
+class EnrollCourseView(LoginRequiredMixin, View):
     """
-    ثبت‌نام کاربر در دوره با بررسی موارد امنیتی:
-    1. دوره باید فعال باشد
-    2. کاربر نباید مدرس دوره باشد
-    3. ظرفیت دوره تکمیل نشده باشد
-    4. کاربر قبلاً ثبت‌نام نکرده باشد
+    ثبت‌نام کاربر در دوره
     """
-    course = get_object_or_404(
-        Course.objects.select_related('instructor'),
-        id=course_id,
-    )
 
-    # بررسی اینکه دوره فعال باشد
-    if not course.is_active:
-        messages.error(
-            request,
-            "This course is currently inactive and cannot be enrolled."
+    def post(self, request, *args, **kwargs):
+        course_id = self.kwargs['pk']
+        course = get_object_or_404(
+            Course.objects.select_related('instructor'),
+            id=course_id
         )
-        return redirect("course_detail", course.id)
 
-    # جلوگیری از ثبت‌نام مدرس در دوره خودش
-    if request.user == course.instructor.user:
-        messages.error(
-            request,
-            "You cannot enroll in your own course."
-        )
-        return redirect("course_detail", course.id)
-
-    # بررسی ظرفیت دوره
-    if course.capacity > 0:
-        current_enrollments = course.enrollments.count()
-        if current_enrollments >= course.capacity:
+        if not course.is_active:
             messages.error(
                 request,
-                "This course is full. No more enrollments accepted."
+                "This course is currently inactive and cannot be enrolled."
             )
-            return redirect("course_detail", course.id)
+            return redirect("course_detail", pk=course.id)
 
-    if request.method == "POST":
-        # بررسی اینکه کاربر قبلاً ثبت‌نام کرده است
+        if request.user == course.instructor.user:
+            messages.error(
+                request,
+                "You cannot enroll in your own course."
+            )
+            return redirect("course_detail", pk=course.id)
+
+        if course.capacity > 0:
+            current_enrollments = course.enrollments.count()
+            if current_enrollments >= course.capacity:
+                messages.error(
+                    request,
+                    "This course is full. No more enrollments accepted."
+                )
+                return redirect("course_detail", pk=course.id)
+
         if Enrollment.objects.filter(
                 user=request.user,
                 course=course,
@@ -400,21 +471,83 @@ def enroll_course(request, course_id):
                 f"You successfully enrolled in {course.title}."
             )
 
-        return redirect("course_detail", course.id)
-
-    return redirect("course_detail", course.id)
+        return redirect("course_detail", pk=course.id)
 
 
-@login_required
-def unenroll_course(request, course_id):
+# @login_required
+# def enroll_course(request, course_id):
+#     """
+#     ثبت‌نام کاربر در دوره با بررسی موارد امنیتی:
+#     1. دوره باید فعال باشد
+#     2. کاربر نباید مدرس دوره باشد
+#     3. ظرفیت دوره تکمیل نشده باشد
+#     4. کاربر قبلاً ثبت‌نام نکرده باشد
+#     """
+#     course = get_object_or_404(
+#         Course.objects.select_related('instructor'),
+#         id=course_id,
+#     )
+#
+#     # بررسی اینکه دوره فعال باشد
+#     if not course.is_active:
+#         messages.error(
+#             request,
+#             "This course is currently inactive and cannot be enrolled."
+#         )
+#         return redirect("course_detail", course.id)
+#
+#     # جلوگیری از ثبت‌نام مدرس در دوره خودش
+#     if request.user == course.instructor.user:
+#         messages.error(
+#             request,
+#             "You cannot enroll in your own course."
+#         )
+#         return redirect("course_detail", course.id)
+#
+#     # بررسی ظرفیت دوره
+#     if course.capacity > 0:
+#         current_enrollments = course.enrollments.count()
+#         if current_enrollments >= course.capacity:
+#             messages.error(
+#                 request,
+#                 "This course is full. No more enrollments accepted."
+#             )
+#             return redirect("course_detail", course.id)
+#
+#     if request.method == "POST":
+#         # بررسی اینکه کاربر قبلاً ثبت‌نام کرده است
+#         if Enrollment.objects.filter(
+#                 user=request.user,
+#                 course=course,
+#         ).exists():
+#             messages.warning(
+#                 request,
+#                 "You are already enrolled in this course."
+#             )
+#         else:
+#             Enrollment.objects.create(
+#                 user=request.user,
+#                 course=course,
+#             )
+#             messages.success(
+#                 request,
+#                 f"You successfully enrolled in {course.title}."
+#             )
+#
+#         return redirect("course_detail", course.id)
+#
+#     return redirect("course_detail", course.id)
+
+
+class UnenrollCourseView(LoginRequiredMixin, View):
     """
     لغو ثبت‌نام کاربر از دوره
     """
-    course = get_object_or_404(
-        Course,
-        id=course_id,
-    )
-    if request.method == "POST":
+
+    def post(self, request, *args, **kwargs):
+        course_id = self.kwargs['pk']
+        course = get_object_or_404(Course, id=course_id)
+
         Enrollment.objects.filter(
             user=request.user,
             course=course,
@@ -425,14 +558,39 @@ def unenroll_course(request, course_id):
             "You have unenrolled from this course."
         )
 
-        return redirect(
-            "course_detail",
-            course.id,
-        )
-    return redirect(
-        "course_detail",
-        course.id,
-    )
+        return redirect("course_detail", pk=course.id)
+
+
+
+
+# @login_required
+# def unenroll_course(request, course_id):
+#     """
+#     لغو ثبت‌نام کاربر از دوره
+#     """
+#     course = get_object_or_404(
+#         Course,
+#         id=course_id,
+#     )
+#     if request.method == "POST":
+#         Enrollment.objects.filter(
+#             user=request.user,
+#             course=course,
+#         ).delete()
+#
+#         messages.success(
+#             request,
+#             "You have unenrolled from this course."
+#         )
+#
+#         return redirect(
+#             "course_detail",
+#             course.id,
+#         )
+#     return redirect(
+#         "course_detail",
+#         course.id,
+#     )
 
 
 class CourseCreateView(LoginRequiredMixin, CreateView):
@@ -684,60 +842,120 @@ def register(request):
     )
 
 
-def instructor_profile(request, username):
+class InstructorProfileView(DetailView):
     """
     نمایش پروفایل عمومی یک مدرس
     """
-    page_number = request.GET.get('page', 1)
+    model = User
+    template_name = 'courses/instructor_profile.html'
+    context_object_name = 'profile_user'
 
-    user = get_object_or_404(
-        User.objects.select_related('instructor'),
-        username=username
-    )
-
-    # بررسی اینکه این کاربر مدرس است یا نه
-    if not hasattr(user, 'instructor'):
-        messages.error(
-            request,
-            "This user is not an instructor."
+    def get_object(self):
+        """
+        دریافت کاربر با username
+        """
+        return get_object_or_404(
+            User.objects.select_related('instructor'),
+            username=self.kwargs['username']
         )
-        return redirect('course_list')
 
-    # دریافت اطلاعات مدرس
-    instructor = user.instructor
+    def get_context_data(self, **kwargs):
+        """
+        اضافه کردن اطلاعات مدرس و دوره‌های او
+        """
+        context = super().get_context_data(**kwargs)
+        user = self.get_object()
 
-    # دریافت دوره‌های این مدرس به همراه تعداد دانشجویان
-    # استفاده از prefetch_related برای بهینه‌سازی
-    courses = instructor.courses.all().prefetch_related('enrollments')
+        # بررسی اینکه کاربر مدرس است
+        if not hasattr(user, 'instructor'):
+            messages.error(self.request, "This user is not an instructor.")
+            # نمی‌توانیم redirect کنیم، پس context خاص می‌دهیم
+            context['error'] = "This user is not an instructor."
+            return context
 
-    total_courses = courses.count()
+        instructor = user.instructor
 
-    paginator = Paginator(courses, 4)
+        # دریافت دوره‌های مدرس با صفحه‌بندی
+        courses_qs = instructor.courses.all().prefetch_related('enrollments')
 
-    try:
-        courses = paginator.page(page_number)
-    except PageNotAnInteger:
-        courses = paginator.page(1)
-    except EmptyPage:
-        courses = paginator.page(paginator.num_pages)
+        # صفحه‌بندی دستی (چون DetailView صفحه‌بندی ندارد)
+        paginator = Paginator(courses_qs, 4)
+        page_number = self.request.GET.get('page', 1)
 
-    # بررسی اینکه کاربر جاری خودش این مدرس است یا نه
-    is_own_profile = False
-    if request.user.is_authenticated and request.user == user:
-        is_own_profile = True
+        try:
+            courses = paginator.page(page_number)
+        except PageNotAnInteger:
+            courses = paginator.page(1)
+        except EmptyPage:
+            courses = paginator.page(paginator.num_pages)
 
-    return render(
-        request,
-        "courses/instructor_profile.html",
-        {
-            "instructor": instructor,
-            "courses": courses,
-            "page_obj": courses,
-            "profile_user": user,
-            "is_own_profile": is_own_profile,
-            "total_courses": total_courses,
-        }
-    )
+        context['instructor'] = instructor
+        context['courses'] = courses
+        context['page_obj'] = courses
+        context['total_courses'] = courses_qs.count()
+
+        # بررسی اینکه کاربر جاری خودش است
+        context['is_own_profile'] = (
+                self.request.user.is_authenticated and
+                self.request.user == user
+        )
+
+        return context
+
+# def instructor_profile(request, username):
+#     """
+#     نمایش پروفایل عمومی یک مدرس
+#     """
+#     page_number = request.GET.get('page', 1)
+#
+#     user = get_object_or_404(
+#         User.objects.select_related('instructor'),
+#         username=username
+#     )
+#
+#     # بررسی اینکه این کاربر مدرس است یا نه
+#     if not hasattr(user, 'instructor'):
+#         messages.error(
+#             request,
+#             "This user is not an instructor."
+#         )
+#         return redirect('course_list')
+#
+#     # دریافت اطلاعات مدرس
+#     instructor = user.instructor
+#
+#     # دریافت دوره‌های این مدرس به همراه تعداد دانشجویان
+#     # استفاده از prefetch_related برای بهینه‌سازی
+#     courses = instructor.courses.all().prefetch_related('enrollments')
+#
+#     total_courses = courses.count()
+#
+#     paginator = Paginator(courses, 4)
+#
+#     try:
+#         courses = paginator.page(page_number)
+#     except PageNotAnInteger:
+#         courses = paginator.page(1)
+#     except EmptyPage:
+#         courses = paginator.page(paginator.num_pages)
+#
+#     # بررسی اینکه کاربر جاری خودش این مدرس است یا نه
+#     is_own_profile = False
+#     if request.user.is_authenticated and request.user == user:
+#         is_own_profile = True
+#
+#     return render(
+#         request,
+#         "courses/instructor_profile.html",
+#         {
+#             "instructor": instructor,
+#             "courses": courses,
+#             "page_obj": courses,
+#             "profile_user": user,
+#             "is_own_profile": is_own_profile,
+#             "total_courses": total_courses,
+#         }
+#     )
 
 
 @login_required

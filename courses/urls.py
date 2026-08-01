@@ -1,77 +1,26 @@
-from django.urls import path
+# courses/urls.py
 
+from django.urls import path
 from . import views
 
 urlpatterns = [
-    path(
-        "",
-        views.course_list,
-        name="course_list",
-    ),
+    path("", views.CourseListView.as_view(), name="course_list"),
 
-    path(
-        "my-courses/",
-        views.my_courses,
-        name="my_courses",
-    ),
+    path("my-courses/", views.MyCoursesView.as_view(), name="my_courses"),
 
-    path(
-        "create/",
-        views.create_course,
-        name="create_course",
-    ),
+    path("create/", views.CourseCreateView.as_view(), name="create_course"),
 
-    path(
-        "register/",
-        views.register,
-        name="register",
-    ),
+    path("register/", views.register, name="register"),
 
-    path(
-        "<int:course_id>/enroll/",
-        views.enroll_course,
-        name="enroll_course",
-    ),
+    path("<int:pk>/enroll/", views.EnrollCourseView.as_view(), name="enroll_course"),
+    path("<int:pk>/unenroll/", views.UnenrollCourseView.as_view(), name="unenroll_course"),
 
-    path(
-        "<int:course_id>/unenroll/",
-        views.unenroll_course,
-        name="unenroll_course",
-    ),
+    path("<int:pk>/", views.CourseDetailView.as_view(), name="course_detail"),
+    path("<int:pk>/edit/", views.CourseUpdateView.as_view(), name="update_course"),
+    path("<int:pk>/delete/", views.CourseDeleteView.as_view(), name="delete_course"),
 
-    path(
-        "<int:course_id>/",
-        views.course_detail,
-        name="course_detail",
-    ),
+    path("category/<slug:slug>/", views.CategoryDetailView.as_view(), name="category_detail"),
+    path("profile/<str:username>/", views.InstructorProfileView.as_view(), name="instructor_profile"),
 
-    path(
-        "<int:course_id>/edit/",
-        views.update_course,
-        name="update_course",
-    ),
-
-    path(
-        "<int:course_id>/delete/",
-        views.delete_course,
-        name="delete_course",
-    ),
-
-    # .......
-    path(
-        "profile/edit/",
-        views.edit_profile,
-        name="edit_profile",
-    ),
-    path(
-        "profile/<str:username>/",  # username رو از مدل User می‌گیریم
-        views.instructor_profile,
-        name="instructor_profile",
-    ),
-    path(
-        "category/<slug:slug>/",
-        views.category_detail,
-        name="category_detail",
-    ),
-
+    path("profile/edit/", views.edit_profile, name="edit_profile"),
 ]
