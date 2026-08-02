@@ -90,6 +90,12 @@ A modern online learning platform built with \*\*Django\*\*, inspired by platfor
 
 ---
 
+## 🌐 Live Demo
+
+Check out the live version of CourseHub:
+
+👉 **[yazdan.pythonanywhere.com](https://yazdan.pythonanywhere.com/)**
+
 ## 📂 Project Structure
 
 ```text
@@ -318,7 +324,7 @@ This project is licensed under the \*\*MIT License\*\*.
 
 \*\*Yazdan\*\*
 
-GitHub: \*\*@yazdan552\*\*
+GitHub: \*\*[yazdan552](https://github.com/yazdan552)\*\*
 
 ---
 
